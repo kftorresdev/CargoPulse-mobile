@@ -4,10 +4,33 @@ public static class ApiConstants
 {
     // Default fallback base URL (overridden by settings or platform)
 #if ANDROID
-    public const string DefaultBaseUrl = "http://10.0.2.2:3000/api";
+    public const string DefaultBaseUrl = "http://10.0.2.2:3000/api/";
 #else
-    public const string DefaultBaseUrl = "http://localhost:3000/api";
+    public const string DefaultBaseUrl = "http://localhost:3000/api/";
 #endif
+
+    public const string CustomApiBaseUrlKey = "cargopulse_custom_api_base_url";
+
+    public static string BaseUrl
+    {
+        get
+        {
+            try
+            {
+                var custom = Microsoft.Maui.Storage.Preferences.Default.Get(CustomApiBaseUrlKey, string.Empty);
+                if (!string.IsNullOrWhiteSpace(custom))
+                {
+                    return custom.TrimEnd('/') + "/";
+                }
+            }
+            catch
+            {
+                // Fallback for headless environments without Preferences provider
+            }
+
+            return DefaultBaseUrl;
+        }
+    }
 
     public const int DefaultTimeoutSeconds = 15;
     public const int MaxOfflineRetries = 3;

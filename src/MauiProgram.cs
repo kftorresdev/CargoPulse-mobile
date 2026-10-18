@@ -36,7 +36,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<AuthenticatedHttpClientHandler>();
         builder.Services.AddSingleton(sp => new HttpClient(sp.GetRequiredService<AuthenticatedHttpClientHandler>())
         {
-            BaseAddress = new Uri(ApiConstants.DefaultBaseUrl),
+            BaseAddress = new Uri(ApiConstants.BaseUrl),
             Timeout = TimeSpan.FromSeconds(ApiConstants.DefaultTimeoutSeconds)
         });
         builder.Services.AddSingleton<IAuthApiClient, AuthApiClient>();

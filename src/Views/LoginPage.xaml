@@ -187,9 +187,33 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Server Connection Indicator & Configuration -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+                <Label
+                    Text="Servidor:"
+                    FontSize="11"
+                    TextColor="#64748B"
+                    VerticalOptions="Center" />
+                <Label
+                    Text="{Binding ServerUrl}"
+                    FontSize="11"
+                    TextColor="#38BDF8"
+                    FontFamily="Monospace"
+                    VerticalOptions="Center" />
+                <Button
+                    Text="⚙ Cambiar"
+                    Command="{Binding ConfigureServerUrlCommand}"
+                    FontSize="10"
+                    TextColor="#94A3B8"
+                    BackgroundColor="Transparent"
+                    Padding="4,0"
+                    HeightRequest="24"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
             <!-- Bottom Version Info -->
             <Label
-                Text="CargoPulse Field Operations v1.0 • Sprint 1"
+                Text="CargoPulse Field Operations v1.0 • Sprint 5 Release"
                 FontSize="11"
                 TextColor="#64748B"
                 HorizontalTextAlignment="Center" />

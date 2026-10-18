@@ -1,3 +1,4 @@
+using CargoPulse.Mobile.Core.Constants;
 using CargoPulse.Mobile.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,12 +22,35 @@ public partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     private bool _isPasswordVisible;
 
+    [ObservableProperty]
+    private string _serverUrl = ApiConstants.BaseUrl;
+
     public bool HasErrorMessage => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     public LoginViewModel(IAuthService authService)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         Title = "Iniciar Sesión";
+    }
+
+    [RelayCommand]
+    private async Task ConfigureServerUrlAsync()
+    {
+        if (Shell.Current != null)
+        {
+            var result = await Shell.Current.DisplayPromptAsync(
+                "Configuración de Servidor",
+                "Ingresa la URL base del backend NestJS:\n• Emulador: http://10.0.2.2:3000/api/\n• USB (adb reverse): http://localhost:3000/api/\n• Wi-Fi Local: http://<IP-PC>:3000/api/",
+                initialValue: ServerUrl,
+                keyboard: Keyboard.Url);
+
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                var formatted = result.TrimEnd('/') + "/";
+                Preferences.Default.Set(ApiConstants.CustomApiBaseUrlKey, formatted);
+                ServerUrl = formatted;
+            }
+        }
     }
 
     [RelayCommand]
