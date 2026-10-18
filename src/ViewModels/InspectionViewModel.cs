@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using CargoPulse.Mobile.Core.Services;
 using CargoPulse.Mobile.Data.Dtos;
+using CargoPulse.Mobile.Data.Local;
+using CargoPulse.Mobile.Data.Local.Entities;
 using CargoPulse.Mobile.Data.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,6 +16,9 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
     private readonly ISignatureService _signatureService;
     private readonly IGeolocationService _geolocationService;
     private readonly IShipmentApiClient _shipmentApiClient;
+    private readonly ILocalInspectionRepository? _localInspectionRepository;
+    private readonly ISyncEngine? _syncEngine;
+    private readonly IConnectivityService? _connectivityService;
 
     [ObservableProperty]
     private string _shipmentId = string.Empty;
@@ -60,10 +66,16 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
     private string _errorMessage = string.Empty;
 
     [ObservableProperty]
+    private string _successFeedbackMessage = string.Empty;
+
+    [ObservableProperty]
     private bool _isSignatureEmpty = true;
 
     [ObservableProperty]
     private CreateInspectionRequestDto? _lastGeneratedInspection;
+
+    [ObservableProperty]
+    private LocalInspectionRecord? _lastSavedRecord;
 
     public bool HasErrorMessage => !string.IsNullOrWhiteSpace(ErrorMessage);
 
@@ -79,13 +91,35 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
         IMediaService mediaService,
         ISignatureService signatureService,
         IGeolocationService geolocationService,
-        IShipmentApiClient shipmentApiClient)
+        IShipmentApiClient shipmentApiClient,
+        ILocalInspectionRepository? localInspectionRepository = null,
+        ISyncEngine? syncEngine = null,
+        IConnectivityService? connectivityService = null)
     {
         _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
         _signatureService = signatureService ?? throw new ArgumentNullException(nameof(signatureService));
         _geolocationService = geolocationService ?? throw new ArgumentNullException(nameof(geolocationService));
         _shipmentApiClient = shipmentApiClient ?? throw new ArgumentNullException(nameof(shipmentApiClient));
+        _localInspectionRepository = localInspectionRepository;
+        _syncEngine = syncEngine;
+        _connectivityService = connectivityService;
         Title = "Inspección de Contenedor";
+    }
+
+    public InspectionViewModel(
+        IMediaService mediaService,
+        ISignatureService signatureService,
+        IGeolocationService geolocationService,
+        IShipmentApiClient shipmentApiClient)
+        : this(
+            mediaService,
+            signatureService,
+            geolocationService,
+            shipmentApiClient,
+            null!,
+            null!,
+            null)
+    {
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -288,8 +322,11 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
                 Base64Content: path
             )).ToList();
 
+            var now = DateTime.UtcNow;
+            var inspectionId = Guid.NewGuid().ToString();
+
             var inspection = new CreateInspectionRequestDto(
-                Id: Guid.NewGuid().ToString(),
+                Id: inspectionId,
                 ShipmentId: ShipmentId,
                 ContainerCondition: ContainerCondition,
                 SealIntact: SealIntact,
@@ -302,10 +339,52 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
                 SignatureBase64: SignatureBase64,
                 SignerName: SignerName,
                 GpsCoordinates: gpsCoordinates,
-                InspectedAt: DateTime.UtcNow
+                InspectedAt: now
             );
 
             LastGeneratedInspection = inspection;
+
+            var photosJson = JsonSerializer.Serialize(Photos.ToList());
+
+            var localRecord = new LocalInspectionRecord
+            {
+                Id = inspectionId,
+                ShipmentId = ShipmentId,
+                TrackingNumber = TrackingNumber,
+                ContainerCondition = ContainerCondition,
+                SealIntact = SealIntact,
+                DeclaredSealNumber = DeclaredSealNumber,
+                ActualSealNumber = ActualSealNumber,
+                SealMismatch = SealMismatch,
+                DamagesReported = DamagesReported,
+                DamagesDescription = DamagesDescription,
+                PhotosJson = photosJson,
+                SignatureBase64 = SignatureBase64,
+                SignerName = SignerName,
+                GpsCoordinates = gpsCoordinates,
+                SyncStatus = "PENDING",
+                RetryCount = 0,
+                LastError = null,
+                InspectedAt = now,
+                CreatedAt = now
+            };
+
+            LastSavedRecord = localRecord;
+
+            if (_localInspectionRepository != null)
+            {
+                await _localInspectionRepository.SaveInspectionAsync(localRecord);
+            }
+
+            if (_connectivityService == null || _connectivityService.IsConnected)
+            {
+                if (_syncEngine != null)
+                {
+                    _ = _syncEngine.SyncPendingInspectionsAsync();
+                }
+            }
+
+            SuccessFeedbackMessage = "Inspección guardada y registrada con éxito.";
 
             if (Shell.Current != null)
             {

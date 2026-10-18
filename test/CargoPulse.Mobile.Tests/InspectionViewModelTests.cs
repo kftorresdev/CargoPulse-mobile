@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CargoPulse.Mobile.Core.Services;
 using CargoPulse.Mobile.Data.Dtos;
+using CargoPulse.Mobile.Data.Local;
+using CargoPulse.Mobile.Data.Local.Entities;
 using CargoPulse.Mobile.Data.Services;
 using CargoPulse.Mobile.ViewModels;
 using FluentAssertions;
@@ -15,6 +17,9 @@ public class InspectionViewModelTests
     private readonly Mock<ISignatureService> _mockSignatureService;
     private readonly Mock<IGeolocationService> _mockGeolocationService;
     private readonly Mock<IShipmentApiClient> _mockShipmentApiClient;
+    private readonly Mock<ILocalInspectionRepository> _mockLocalRepo;
+    private readonly Mock<ISyncEngine> _mockSyncEngine;
+    private readonly Mock<IConnectivityService> _mockConnectivityService;
     private readonly InspectionViewModel _sut;
 
     public InspectionViewModelTests()
@@ -23,12 +28,20 @@ public class InspectionViewModelTests
         _mockSignatureService = new Mock<ISignatureService>();
         _mockGeolocationService = new Mock<IGeolocationService>();
         _mockShipmentApiClient = new Mock<IShipmentApiClient>();
+        _mockLocalRepo = new Mock<ILocalInspectionRepository>();
+        _mockSyncEngine = new Mock<ISyncEngine>();
+        _mockConnectivityService = new Mock<IConnectivityService>();
+
+        _mockConnectivityService.Setup(c => c.IsConnected).Returns(true);
 
         _sut = new InspectionViewModel(
             _mockMediaService.Object,
             _mockSignatureService.Object,
             _mockGeolocationService.Object,
-            _mockShipmentApiClient.Object
+            _mockShipmentApiClient.Object,
+            _mockLocalRepo.Object,
+            _mockSyncEngine.Object,
+            _mockConnectivityService.Object
         );
     }
 
@@ -301,5 +314,63 @@ public class InspectionViewModelTests
         _sut.ApplyQueryAttributes(query);
 
         _sut.DeclaredSealNumber.Should().Be("SEAL-MX-98442");
+    }
+
+    [Fact]
+    public async Task SubmitInspectionAsync_WhenValidAndOnline_SavesLocalRecordAndTriggersSyncEngine()
+    {
+        _sut.ShipmentId = "ship-999";
+        _sut.TrackingNumber = "TRK-999";
+        _sut.DeclaredSealNumber = "SEAL-DEC-999";
+        _sut.ActualSealNumber = "SEAL-ACT-999";
+        _sut.ContainerCondition = "GOOD";
+        _sut.SignerName = "Mario Rossi";
+        _sut.SignatureBase64 = "data:image/png;base64,SIGDATA";
+        _sut.Photos.Add("photo1.jpg");
+        _sut.Photos.Add("photo2.jpg");
+
+        _mockConnectivityService.Setup(c => c.IsConnected).Returns(true);
+        _mockLocalRepo.Setup(r => r.SaveInspectionAsync(It.IsAny<LocalInspectionRecord>())).Returns(Task.CompletedTask);
+        _mockSyncEngine.Setup(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        await _sut.SubmitInspectionAsync();
+
+        _mockLocalRepo.Verify(r => r.SaveInspectionAsync(It.Is<LocalInspectionRecord>(record =>
+            record.ShipmentId == "ship-999" &&
+            record.TrackingNumber == "TRK-999" &&
+            record.SyncStatus == "PENDING" &&
+            record.PhotosJson.Contains("photo1.jpg") &&
+            record.PhotosJson.Contains("photo2.jpg") &&
+            record.SignerName == "Mario Rossi" &&
+            record.SignatureBase64 == "data:image/png;base64,SIGDATA"
+        )), Times.Once);
+
+        _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _sut.SuccessFeedbackMessage.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task SubmitInspectionAsync_WhenOffline_SavesLocalRecordWithoutTriggeringSyncEngine()
+    {
+        _sut.ShipmentId = "ship-888";
+        _sut.TrackingNumber = "TRK-888";
+        _sut.DeclaredSealNumber = "SEAL-DEC-888";
+        _sut.ActualSealNumber = "SEAL-ACT-888";
+        _sut.ContainerCondition = "GOOD";
+        _sut.SignerName = "Luigi Verde";
+        _sut.SignatureBase64 = "data:image/png;base64,SIGLUIGI";
+
+        _mockConnectivityService.Setup(c => c.IsConnected).Returns(false);
+        _mockLocalRepo.Setup(r => r.SaveInspectionAsync(It.IsAny<LocalInspectionRecord>())).Returns(Task.CompletedTask);
+
+        await _sut.SubmitInspectionAsync();
+
+        _mockLocalRepo.Verify(r => r.SaveInspectionAsync(It.Is<LocalInspectionRecord>(record =>
+            record.ShipmentId == "ship-888" &&
+            record.SyncStatus == "PENDING"
+        )), Times.Once);
+
+        _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _sut.SuccessFeedbackMessage.Should().NotBeNullOrWhiteSpace();
     }
 }

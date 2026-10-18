@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             xmlns:entities="clr-namespace:CargoPulse.Mobile.Data.Local.Entities"
+             x:Class="CargoPulse.Mobile.Views.SyncQueuePage"
+             x:DataType="viewModels:SyncQueueViewModel"
+             BackgroundColor="#F8FAFC"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, Auto, *">
+
+        <!-- Top Industrial Header Bar -->
+        <Border
+            Grid.Row="0"
+            BackgroundColor="#0F172A"
+            StrokeThickness="0"
+            Padding="20,16">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label
+                        Text="CARGOPULSE SYNC"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="#38BDF8"
+                        CharacterSpacing="1" />
+                    <Label
+                        Text="Cola de Sincronización"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="White" />
+                </VerticalStackLayout>
+
+                <!-- Live Connectivity Status Pill (En Línea [Verde #16A34A] / Modo Offline [Gris pizarra #475569]) -->
+                <Border
+                    Grid.Column="1"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="12,6"
+                    VerticalOptions="Center"
+                    BackgroundColor="#475569">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding IsOnline}" Value="True">
+                            <Setter Property="BackgroundColor" Value="#16A34A" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Label
+                            Text="●"
+                            FontSize="12"
+                            TextColor="White"
+                            VerticalOptions="Center" />
+                        <Label
+                            Text="Modo Offline"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="White"
+                            VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsOnline}" Value="True">
+                                    <Setter Property="Text" Value="En Línea" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Queue Summary & Actions Section -->
+        <VerticalStackLayout Grid.Row="1" Padding="16,14,16,6" Spacing="12">
+
+            <!-- Progress Bar (Visible when IsSyncing) -->
+            <Border
+                Stroke="#0284C7"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 8"
+                BackgroundColor="#F0F9FF"
+                Padding="12,10"
+                IsVisible="{Binding IsSyncing}">
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label
+                            Grid.Column="0"
+                            Text="{Binding SyncMessage}"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#0284C7"
+                            LineBreakMode="TailTruncation" />
+                        <Label
+                            Grid.Column="1"
+                            Text="{Binding ProgressPercent, StringFormat='{0:P0}'}"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#0284C7" />
+                    </Grid>
+                    <ProgressBar
+                        Progress="{Binding ProgressPercent}"
+                        ProgressColor="#0284C7"
+                        HeightRequest="6" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Counter & Force Sync Button Card -->
+            <Border
+                Stroke="#E2E8F0"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="White"
+                Padding="16">
+                <VerticalStackLayout Spacing="14">
+                    <!-- Summary Counter -->
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label
+                                Text="ESTADO DE LA COLA"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#64748B"
+                                CharacterSpacing="1" />
+                            <Label
+                                Text="{Binding PendingCount, StringFormat='{0} inspecciones pendientes de sincronización'}"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="#0F172A" />
+                        </VerticalStackLayout>
+
+                        <!-- Counter Bubble -->
+                        <Border
+                            Grid.Column="1"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="#FEF3C7"
+                            Padding="12,4"
+                            VerticalOptions="Center">
+                            <Label
+                                Text="{Binding PendingCount}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="#D97706" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Primary Action Button: SINCRONIZAR AHORA -->
+                    <Button
+                        Text="SINCRONIZAR AHORA"
+                        Command="{Binding ForceSyncCommand}"
+                        HeightRequest="48"
+                        CornerRadius="8"
+                        BackgroundColor="#0284C7"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="14"
+                        IsEnabled="{Binding IsNotBusy}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Section Label -->
+            <Label
+                Text="REGISTROS DE INSPECCIÓN"
+                FontSize="11"
+                FontAttributes="Bold"
+                TextColor="#64748B"
+                CharacterSpacing="1"
+                Margin="4,2,0,0" />
+
+        </VerticalStackLayout>
+
+        <!-- Inspections CollectionView with Pull-to-Refresh and Empty State -->
+        <RefreshView
+            Grid.Row="2"
+            IsRefreshing="{Binding IsBusy}"
+            Command="{Binding RefreshCommand}"
+            RefreshColor="#0284C7">
+
+            <CollectionView
+                ItemsSource="{Binding Inspections}"
+                SelectionMode="None">
+
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.Header>
+                    <BoxView HeightRequest="4" Color="Transparent" />
+                </CollectionView.Header>
+
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="24" Color="Transparent" />
+                </CollectionView.Footer>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="entities:LocalInspectionRecord">
+                        <Border
+                            Margin="16,0"
+                            Stroke="#E2E8F0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10"
+                            BackgroundColor="White"
+                            Padding="14">
+                            <VerticalStackLayout Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                    <!-- Tracking Number & Condition -->
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label
+                                            Text="{Binding TrackingNumber, TargetNullValue='Sin número de guía'}"
+                                            FontSize="15"
+                                            FontAttributes="Bold"
+                                            TextColor="#0F172A"
+                                            FontFamily="Monospace" />
+                                        <Label
+                                            Text="{Binding ContainerCondition, StringFormat='Condición: {0}'}"
+                                            FontSize="12"
+                                            TextColor="#64748B" />
+                                    </VerticalStackLayout>
+
+                                    <!-- Status Pill: PENDING -> Amber, SYNCED -> Green, FAILED -> Red -->
+                                    <Border
+                                        Grid.Column="1"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 12"
+                                        Padding="10,4"
+                                        VerticalOptions="Start"
+                                        BackgroundColor="#FEF3C7">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="SYNCED">
+                                                <Setter Property="BackgroundColor" Value="#DCFCE7" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="FAILED">
+                                                <Setter Property="BackgroundColor" Value="#FEE2E2" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Label
+                                            Text="{Binding SyncStatus}"
+                                            FontSize="10"
+                                            FontAttributes="Bold"
+                                            TextColor="#D97706">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="SYNCED">
+                                                    <Setter Property="TextColor" Value="#16A34A" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
+                                                    <Setter Property="TextColor" Value="#DC2626" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                </Grid>
+
+                                <BoxView Color="#F1F5F9" HeightRequest="1" />
+
+                                <!-- Metadata Row: Timestamp & Seal -->
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding InspectedAt, StringFormat='📅 {0:dd/MM/yyyy HH:mm}'}"
+                                        FontSize="11"
+                                        TextColor="#94A3B8"
+                                        VerticalOptions="Center" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding ActualSealNumber, StringFormat='Sello: {0}'}"
+                                        FontSize="11"
+                                        TextColor="#64748B"
+                                        VerticalOptions="Center" />
+                                </Grid>
+
+                                <!-- Error Message if Failed -->
+                                <Label
+                                    Text="{Binding LastError, StringFormat='⚠ Error: {0}'}"
+                                    FontSize="11"
+                                    TextColor="#DC2626"
+                                    LineBreakMode="TailTruncation"
+                                    IsVisible="False">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <!-- Empty State Template -->
+                <CollectionView.EmptyViewTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout
+                            Padding="32,48"
+                            Spacing="12"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                            <Border
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 36"
+                                BackgroundColor="#E2E8F0"
+                                WidthRequest="72"
+                                HeightRequest="72"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
+                                <Label
+                                    Text="📋"
+                                    FontSize="34"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center" />
+                            </Border>
+
+                            <Label
+                                Text="Todas las inspecciones están sincronizadas"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="#0F172A"
+                                HorizontalTextAlignment="Center" />
+
+                            <Label
+                                Text="No hay registros pendientes en la cola local de este dispositivo."
+                                FontSize="13"
+                                TextColor="#64748B"
+                                HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.EmptyViewTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>
