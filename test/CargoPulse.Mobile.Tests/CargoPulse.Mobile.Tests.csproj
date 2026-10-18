@@ -33,6 +33,10 @@
     <Compile Include="..\..\src\Core\Services\SignatureService.cs" LinkBase="Core\Services\SignatureService.cs" />
     <Compile Include="..\..\src\Core\Services\IGeolocationService.cs" LinkBase="Core\Services\IGeolocationService.cs" />
     <Compile Include="..\..\src\Core\Services\GeolocationService.cs" LinkBase="Core\Services\GeolocationService.cs" />
+    <Compile Include="..\..\src\Core\Services\IConnectivityService.cs" LinkBase="Core\Services\IConnectivityService.cs" />
+    <Compile Include="..\..\src\Core\Services\ConnectivityService.cs" LinkBase="Core\Services\ConnectivityService.cs" />
+    <Compile Include="..\..\src\Core\Services\ISyncEngine.cs" LinkBase="Core\Services\ISyncEngine.cs" />
+    <Compile Include="..\..\src\Core\Services\BackgroundSyncEngine.cs" LinkBase="Core\Services\BackgroundSyncEngine.cs" />
     <Compile Include="..\..\src\Core\Handlers\**\*.cs" LinkBase="Core\Handlers" />
     <Compile Include="..\..\src\Data\**\*.cs" LinkBase="Data" />
     <Compile Include="..\..\src\ViewModels\**\*.cs" LinkBase="ViewModels" />

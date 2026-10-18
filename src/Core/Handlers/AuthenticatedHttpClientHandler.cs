@@ -9,8 +9,8 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
     private readonly ISecureStorageService _secureStorageService;
 
     public AuthenticatedHttpClientHandler(ISecureStorageService secureStorageService)
+        : this(secureStorageService, new HttpClientHandler())
     {
-        _secureStorageService = secureStorageService ?? throw new ArgumentNullException(nameof(secureStorageService));
     }
 
     public AuthenticatedHttpClientHandler(ISecureStorageService secureStorageService, HttpMessageHandler innerHandler)

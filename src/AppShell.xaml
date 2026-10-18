@@ -36,6 +36,13 @@
                 Shell.NavBarIsVisible="False"
                 ContentTemplate="{DataTemplate views:ShipmentsListPage}" />
         </Tab>
+
+        <Tab Title="Sincronización" Route="sync">
+            <ShellContent
+                Title="Sincronización"
+                Shell.NavBarIsVisible="False"
+                ContentTemplate="{DataTemplate views:SyncQueuePage}" />
+        </Tab>
     </TabBar>
 
 </Shell>
