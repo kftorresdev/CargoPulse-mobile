@@ -83,12 +83,14 @@ public partial class LoginViewModel : BaseViewModel
             }
             else
             {
-                ErrorMessage = "Credenciales incorrectas o error de conexión";
+                ErrorMessage = !string.IsNullOrWhiteSpace(_authService.LastErrorMessage)
+                    ? _authService.LastErrorMessage
+                    : "Credenciales incorrectas o error de conexión";
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = "Credenciales incorrectas o error de conexión";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {

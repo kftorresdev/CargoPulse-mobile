@@ -9,4 +9,5 @@ public interface IAuthService
     Task<UserProfileDto?> GetCurrentUserAsync();
     Task<bool> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
     Task LogoutAsync();
+    string? LastErrorMessage { get; }
 }

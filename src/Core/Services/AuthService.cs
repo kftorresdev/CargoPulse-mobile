@@ -15,19 +15,30 @@ public class AuthService : IAuthService
         _secureStorageService = secureStorageService ?? throw new ArgumentNullException(nameof(secureStorageService));
     }
 
+    public string? LastErrorMessage { get; private set; }
+
     public async Task<bool> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
+        LastErrorMessage = null;
         var request = new LoginRequestDto(email, password);
         LoginResponseDto? response;
         try
         {
             response = await _authApiClient.LoginAsync(request, cancellationToken);
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
+            LastErrorMessage = ex.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                ? "Credenciales incorrectas. Verifique su correo y contraseña."
+                : $"Error de conexión con {ApiConstants.BaseUrl} ({ex.StatusCode?.ToString() ?? "Red"}): {ex.Message}";
+            return false;
+        }
+        catch (Exception ex)
+        {
+            LastErrorMessage = $"Error inesperado al conectar: {ex.Message}";
             return false;
         }
 
@@ -47,6 +58,7 @@ public class AuthService : IAuthService
             return true;
         }
 
+        LastErrorMessage = "La respuesta del servidor no contiene credenciales válidas.";
         return false;
     }
 

@@ -25,6 +25,29 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        // Dynamically align request URI with currently configured ApiConstants.BaseUrl
+        var currentBaseUrl = ApiConstants.BaseUrl;
+        if (request.RequestUri != null)
+        {
+            var targetBase = new Uri(currentBaseUrl);
+            if (!request.RequestUri.IsAbsoluteUri)
+            {
+                request.RequestUri = new Uri(targetBase, request.RequestUri);
+            }
+            else if (!string.Equals(request.RequestUri.Host, targetBase.Host, StringComparison.OrdinalIgnoreCase) ||
+                     request.RequestUri.Port != targetBase.Port ||
+                     !string.Equals(request.RequestUri.Scheme, targetBase.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                var uriBuilder = new UriBuilder(request.RequestUri)
+                {
+                    Scheme = targetBase.Scheme,
+                    Host = targetBase.Host,
+                    Port = targetBase.Port
+                };
+                request.RequestUri = uriBuilder.Uri;
+            }
+        }
+
         var token = await _secureStorageService.GetAsync(ApiConstants.AuthTokenKey);
         if (!string.IsNullOrWhiteSpace(token))
         {

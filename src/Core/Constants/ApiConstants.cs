@@ -2,12 +2,29 @@ namespace CargoPulse.Mobile.Core.Constants;
 
 public static class ApiConstants
 {
-    // Default fallback base URL (overridden by settings or platform)
+    public static string DefaultBaseUrl
+    {
+        get
+        {
 #if ANDROID
-    public const string DefaultBaseUrl = "http://10.0.2.2:3000/api/";
+            try
+            {
+                if (Microsoft.Maui.Devices.DeviceInfo.Current.DeviceType == Microsoft.Maui.Devices.DeviceType.Physical)
+                {
+                    return "http://localhost:3000/api/";
+                }
+            }
+            catch
+            {
+                // Fallback for headless test environments where DeviceInfo is not initialized
+            }
+
+            return "http://10.0.2.2:3000/api/";
 #else
-    public const string DefaultBaseUrl = "http://localhost:3000/api/";
+            return "http://localhost:3000/api/";
 #endif
+        }
+    }
 
     public const string CustomApiBaseUrlKey = "cargopulse_custom_api_base_url";
 
