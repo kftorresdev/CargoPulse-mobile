@@ -111,6 +111,7 @@ public class ShipmentApiClient : IShipmentApiClient
         var items = listResponse?.Data?.Items;
         if ((items == null || items.Count == 0) && cleanTracking.Contains('/'))
         {
+            // Si el código escaneado es una URL o ruta, extraer el último segmento para buscar el tracking
             var lastSegment = cleanTracking.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
             if (!string.IsNullOrWhiteSpace(lastSegment) && !string.Equals(lastSegment, cleanTracking, StringComparison.OrdinalIgnoreCase))
             {

@@ -16,7 +16,7 @@ public class GeolocationService : IGeolocationService
     {
         try
         {
-            // 1. Try last known location first (immediate cache lookup, ~5ms)
+            // 1. Intentar obtener primero la última ubicación conocida en caché (~5 ms)
             try
             {
                 var lastLocation = await _geolocation.GetLastKnownLocationAsync().ConfigureAwait(false);
@@ -27,10 +27,10 @@ public class GeolocationService : IGeolocationService
             }
             catch
             {
-                // Proceed to fresh location if last known fails
+                // Continuar con solicitud en vivo si falla la lectura de la caché
             }
 
-            // 2. Query fresh location with a strict 2-second timeout to prevent any UI freezing
+            // 2. Consultar ubicación en vivo con un tiempo límite estricto de 2 segundos para evitar congelamientos de UI
             using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 

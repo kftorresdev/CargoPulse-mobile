@@ -397,7 +397,7 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
                 }
                 catch
                 {
-                    // Fallback to direct navigation if modal popping fails
+                    // Navegación directa al dashboard si falla el desapilado modal
                 }
 
                 await Shell.Current.GoToAsync("//main/dashboard");
