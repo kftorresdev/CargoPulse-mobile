@@ -1,4 +1,4 @@
-# MASTER SOFTWARE ENGINEERING CONSTITUTION & DEVELOPMENT STANDARD (v2.2)
+# MASTER SOFTWARE ENGINEERING CONSTITUTION & DEVELOPMENT STANDARD (v2.3)
 ## Marco de Gobernanza Técnica, Arquitectura, Especificación y Calidad de Software (Web & Mobile)
 
 > **Propósito de este documento:**  
@@ -373,7 +373,17 @@ El orquestador podrá desplegar subagentes con los siguientes perfiles de ingeni
   4. Resolver cualquier conflicto de integración entre las capas construidas por los distintos subagentes.
   5. Ejecutar la compilación final y correr las suites de pruebas unitarias para certificar la Definition of Done (DoD).
 
+### 11.5 Protocolo de Enjambre ante Triage de Incidentes y Errores en Cascada
+Cuando surgen errores durante pruebas exploratorias o en tiempo de ejecución, el Asistente no debe improvisar soluciones parche en un único hilo si la envergadura del incidente es transversal. Se establece la siguiente **Matriz de Severidad y Activación de Enjambre**:
+
+| Nivel de Severidad | Criterios del Problema | Protocolo de Resolución Mandatorio |
+| :--- | :--- | :--- |
+| **Severidad 1: Baja (Cosmética / Localizada)** | Error tipográfico en etiqueta, color de badge inconsistente, ajuste visual de padding/margin sin lógica de negocio. | Resolución directa por el Agente Principal (1 hilo). |
+| **Severidad 2: Media (Falla de Componente Aislado)** | Validación de formulario omitida, cálculo erróneo en ViewModel sin impacto en persistencia, error 404 por ruta mal escrita. | 1 subagente especializado acotado a la capa afectada + suite de prueba unitaria de regresión. |
+| **Severidad 3: Alta / Crítica (Falla Multi-Capa / Bloqueo de Sistema)** | • **ANR o congelamiento de UI** por deadlocks o llamadas asíncronas no acotadas.<br>• **Fallas de contrato cliente-servidor** (HTTP 500, payload rechazado por tamaño, incompatibilidad de esquemas DTO).<br>• **Errores de ciclo de vida de hardware/sensores** (cámara no inicializada, permisos de sistema no resueltos, timeout de GPS).<br>• **Pérdida o corrupción de datos** en base de datos local SQLite o motor de sincronización offline. | **OBLIGATORIO DESPLEGAR UN ENJAMBRE DE 3 A 5 SUBAGENTES CONCURRENTES:**<br>1. *Backend & Payload Specialist:* Diagnóstico de logs del servidor, límites de body-parser y controladores API.<br>2. *Hardware & Sensors Specialist:* Manifiestos de permisos, ciclo de vida de hardware y timeouts duros.<br>3. *UI & Navigation Specialist:* Renderer de Shell, supresión de deadlocks en hilo de UI y diseño de feedback visual de error.<br>4. *QA & Regression Specialist:* Pruebas unitarias de borde para certificar la no repetición del incidente. |
+
 ---
+
 
 ## 📖 12. Estándar Sagrado del README de Proyecto y Gobernanza de Documentación
 
@@ -418,3 +428,92 @@ En conformidad con RFC 3986, toda URL base configurada en clientes HTTP (`HttpCl
 
 ### 13.3 Selector Dinámico de Servidor en Caliente (Runtime BaseUrl Override)
 El cliente móvil debe incluir un mecanismo en la capa de presentación (ej. botón o enlace de configuración en la pantalla de inicio de sesión) que permita al tester o desarrollador modificar la URL base del servidor en tiempo de ejecución mediante almacenamiento local (`Preferences`), persistiendo el valor entre sesiones para no requerir recompilación ante cambios de IP en redes locales.
+
+---
+
+## 🧪 14. Protocolo de Compuertas de Pruebas Exploratorias Continuas (Incremental Live Testing Gates)
+
+**Regla de Oro:** Queda terminantemente prohibido acumular múltiples sprints de desarrollo sin validación en caliente y esperar hasta el final del proyecto para realizar pruebas en dispositivos reales o emuladores. La confianza ciega en suites de pruebas unitarias headless es una antipatrón que esconde fallos de integración de hardware, ciclo de vida del sistema operativo y permisos en tiempo de ejecución.
+
+### 14.1 Estructura de la Compuerta de Prueba en Vivo (Live Testing Gate)
+Al finalizar la implementación de cada Sprint, la *Definition of Done (DoD)* exige una **Compuerta de Prueba en Vivo Obligatoria** antes de iniciar el siguiente sprint. El Agente Principal debe presentar una Ficha de Prueba Exploratoria con:
+1. **Dispositivo / Emulador Objetivo:** Estado de conexión verificado (`adb devices` o simulador activo).
+2. **Pre-requisitos de Datos:** Usuarios de prueba (email, password y rol del `seed.ts`), entidades creadas (IDs de tracking, estados iniciales).
+3. **Flujo de Prueba Paso a Paso:** 3 a 5 acciones concretas para que el usuario o tester ejecute en la pantalla física.
+4. **Criterios de Aceptación Visual y Funcional:** Qué debe ocurrir en la UI, tiempos de respuesta esperados y transiciones de pantalla.
+
+### 14.2 Matriz de Compuertas por Tipo de Sprint (Mobile Reference)
+- **Sprint de Autenticación (Sprint 1):** Probar login real en el dispositivo físico, validando el intercambio de tokens JWT, almacenamiento seguro y navegación hacia la pantalla de bienvenida / dashboard.
+- **Sprint de Navegación y Búsqueda (Sprint 2):** Probar cambio de pestañas, búsqueda manual con datos reales del seed y activación óptica preliminar del escáner.
+- **Sprint de Formularios y Hardware (Sprint 3):** Probar captura de fotos reales desde el sensor del teléfono, trazo de firma digital táctil con el dedo y guardado de formulario sin congelamiento.
+- **Sprint de Resiliencia Offline y Sincronización (Sprint 4):** Activar modo avión en el teléfono, registrar operaciones desconectado, verificar persistencia en SQLite local, desactivar modo avión y presionar "Sincronizar ahora" validando la transición de estados `PENDING` -> `SYNCED`.
+
+---
+
+## 📱 15. Gobernanza de Capacidades de Hardware, Sensores y Permisos Móviles
+
+En desarrollo móvil nativo o multiplataforma (.NET MAUI, Kotlin Compose, Swift), el hardware del dispositivo (Cámara, GPS, Bluetooth, Acelerómetro, Biometría) impone restricciones estrictas del sistema operativo (Android 14/15/16, iOS 17/18) que deben gobernarse preventivamente.
+
+### 15.1 Declaración Temprana en Manifiestos (Sprint 0 Scaffolding)
+Si el documento de arquitectura (TRD) estipula que la aplicación requerirá acceso a sensores físicos o periféricos, **todos los permisos y features correspondientes DEBEN quedar declarados en `AndroidManifest.xml` e `Info.plist` en la Fase 0 / Sprint 0**. Queda terminantemente prohibido diferir la declaración de permisos al sprint donde se diseñan las pantallas.
+- *Ejemplo Android:* `<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />`, `<uses-permission android:name="android.permission.CAMERA" />`, y sus respectivas cláusulas `<uses-feature android:required="false" />`.
+
+### 15.2 Regla del SLA de Hardware (Zero-Hang SLA - Límite Duro de 2 Segundos)
+Ninguna llamada a sensores físicos (especialmente GPS / Geolocation) puede ejecutarse de manera no acotada en el hilo de UI o bloquear una transacción de guardado del usuario.
+1. **Caché Instantánea Primero:** Todo servicio de hardware debe consultar primero el último valor conocido (`GetLastKnownLocationAsync` en GPS) que resuelve en `< 10ms`.
+2. **Timeout Duro de 2 Segundos:** Si no existe valor en caché, la solicitud en vivo debe envolverse obligatoriamente con un `CancellationTokenSource(TimeSpan.FromSeconds(2))` y un guarda `Task.WhenAny(hardwareTask, Task.Delay(2000))`.
+3. **Fallback Limpio Sin Fricción:** Si el sensor físico no responde en 2 segundos (satélites inaccesibles, modo avión, GPS apagado), el servicio debe retornar `null` de forma silenciosa y permitir que el guardado de la inspección o transacción continúe sin provocar un ANR (Application Not Responding).
+
+### 15.3 Ciclo de Vida Defensivo de Permisos de Ejecución (Runtime Permissions)
+1. **Cero Adquisición Prematura de Hardware:** Ningún componente de cámara o sensor debe comenzar la captura de hardware en el constructor de la vista o mediante bindings XAML que evalúen `true` por defecto antes de que el usuario haya otorgado el permiso.
+2. **Inspección en `OnAppearing`:** La verificación del permiso (`Permissions.CheckStatusAsync`) debe ejecutarse en el ciclo de vida de la vista (`OnAppearing`).
+3. **Manejo de Permiso Denegado:** Si el permiso es denegado o bloqueado por el sistema ("No volver a preguntar"), la UI debe presentar un estado de advertencia amigable con un botón directo a la configuración de la app (`AppInfo.Current.ShowSettingsUI()`) y una alternativa manual funcional (ej. búsqueda manual de tracking).
+
+---
+
+## 🔌 16. Protocolo de Diagnóstico y Conectividad Host-Dispositivo (ADB Pre-Flight Protocol)
+
+Antes de intentar compilar o ejecutar sobre un dispositivo móvil físico, el entorno de desarrollo debe certificar la compatibilidad y el enlace con la PC de trabajo.
+
+### 16.1 Verificación Pre-Vuelo de Dispositivo (Pre-Flight ADB Handshake)
+El Asistente y el desarrollador deben verificar el estado de los dispositivos conectados ejecutando:
+```powershell
+adb devices
+```
+- Si aparece un dispositivo en estado `device`, la sesión está lista.
+- Si aparece en estado `unauthorized`, el usuario debe desbloquear la pantalla del teléfono y presionar "Permitir siempre la depuración por USB desde esta computadora".
+- Si la lista está vacía, se debe verificar el cable USB o iniciar el protocolo de vinculación Wi-Fi.
+
+### 16.2 Protocolo de Depuración Inalámbrica por Wi-Fi (ADB Wireless Pairing vs Connecting)
+Para evitar fallas de conexión por puertos dinámicos en Android 11+:
+1. **Fase 1: Vinculación Inicial Única (`adb pair`):**
+   - El teléfono muestra una ventana emergente: "Vincular con código de vinculación".
+   - Contiene una IP, un **puerto efímero de vinculación** (ej. `192.168.0.11:37419`) y un código de 6 dígitos.
+   - En la terminal se ejecuta: `adb pair 192.168.0.11:37419`, se ingresa el PIN de 6 dígitos y se confirma la vinculación. Esta ventana en el teléfono **se cierra inmediatamente**.
+2. **Fase 2: Conexión Estable de Trabajo (`adb connect`):**
+   - Una vez vinculado, la pantalla principal de "Depuración inalámbrica" del teléfono muestra una dirección IP con un **puerto de conexión diferente** (ej. `192.168.0.11:33715`).
+   - Se ejecuta: `adb connect 192.168.0.11:33715`.
+   - El dispositivo permanece conectado para compilar, instalar APKs (`adb install -r`) y lanzar actividades (`adb shell am start`) sin necesidad de cables.
+3. **Fase 3: Reconexión Automática ante Reinicios:**
+   - La vinculación (`pair`) se realiza una única vez por red Wi-Fi.
+   - Si la PC o el teléfono se reinician o cambia la IP, solo se requiere volver a encender la depuración inalámbrica en el teléfono y ejecutar `adb connect <Nueva_IP>:<Nuevo_Puerto>`.
+
+---
+
+## 📦 17. Gobernanza de Cargas Útiles Grandes en APIs Móviles (Field Evidences & Large Payloads)
+
+Las aplicaciones móviles operativas capturan datos del mundo real: firmas vectorizadas en pantalla, fotografías de inspección física y documentos escaneados.
+
+### 17.1 Configuración Mandatoria de Límites de Payload en el Backend (50 MB Standard)
+Los servidores HTTP modernos (Express, NestJS, Fastify, ASP.NET Core) configuran por defecto un límite estricto de carga útil en el parser de JSON de 100 KB a 1 MB. Enviar fotos codificadas en Base64 o streams multipart desde una app móvil superará de inmediato este límite, resultando en errores silenciosos HTTP 413 (Payload Too Large) o HTTP 500.
+- **Regla Obligatoria:** Todo backend que consuma datos de campo de una app móvil debe configurar explícitamente en su punto de entrada (`main.ts` / `Program.cs`) un límite de carga útil de al menos **50 MB**:
+  ```typescript
+  // NestJS / Express
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+  ```
+
+### 17.2 Transparencia Diagnóstica de Errores en Clientes Móviles
+1. **Visibilidad Completa de Errores de Sincronización:** En pantallas de colas offline o historial de sincronización, los mensajes de error retornados por la red o el servidor NUNCA deben truncarse sin opción de lectura. Deben contar con ajuste de línea (`LineBreakMode="WordWrap"`), scroll vertical o un diálogo modal táctil que permita al operador o tester inspeccionar la causa exacta del rechazo.
+2. **Transparencia en Sensores Ópticos (Escáner de Códigos):** Si el sensor de cámara detecta un código que no coincide con ningún registro en la base de datos, la interfaz debe mostrar expresamente: `Código escaneado: '[VALOR_DETECTADO]'. No coincide con ningún registro.`, permitiendo confirmar que el sensor óptico funcionó correctamente y descartando falsos reportes de fallas de cámara.
+
