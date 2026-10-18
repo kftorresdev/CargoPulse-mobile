@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             xmlns:converters="clr-namespace:CargoPulse.Mobile.Core.Converters"
+             x:Class="CargoPulse.Mobile.Views.LoginPage"
+             x:DataType="viewModels:LoginViewModel"
+             BackgroundColor="#0F172A"
+             Shell.NavBarIsVisible="False"
+             Shell.FlyoutBehavior="Disabled"
+             Shell.TabBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24"
+            Spacing="24"
+            VerticalOptions="Center"
+            MaximumWidthRequest="450">
+
+            <!-- Logo & Brand Header -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border
+                    Stroke="#0284C7"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 20"
+                    BackgroundColor="#1E293B"
+                    WidthRequest="80"
+                    HeightRequest="80"
+                    HorizontalOptions="Center">
+                    <Label
+                        Text="⚡"
+                        FontSize="36"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </Border>
+
+                <Label
+                    Text="CARGOPULSE"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center"
+                    TextColor="White"
+                    CharacterSpacing="2" />
+
+                <Label
+                    Text="Field Operations Companion"
+                    FontSize="14"
+                    HorizontalTextAlignment="Center"
+                    TextColor="#94A3B8" />
+            </VerticalStackLayout>
+
+            <!-- Card Container for Credentials -->
+            <Border
+                Stroke="#334155"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="#1E293B"
+                Padding="20">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Form Title -->
+                    <Label
+                        Text="Acceso al Sistema"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="White" />
+
+                    <!-- Error Alert Banner -->
+                    <Border
+                        Stroke="#DC2626"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="#450A0A"
+                        Padding="12,10"
+                        IsVisible="{Binding HasErrorMessage}">
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Label Text="⚠" TextColor="#EF4444" FontSize="16" VerticalOptions="Center" />
+                            <Label
+                                Text="{Binding ErrorMessage}"
+                                TextColor="#FECACA"
+                                FontSize="13"
+                                LineBreakMode="WordWrap"
+                                VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Email Field -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Correo Electrónico"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#CBD5E1" />
+                        <Border
+                            Stroke="#475569"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#0F172A"
+                            HeightRequest="50"
+                            Padding="12,0">
+                            <Entry
+                                Text="{Binding Email}"
+                                Placeholder="operador@cargopulse.com"
+                                PlaceholderColor="#64748B"
+                                TextColor="White"
+                                Keyboard="Email"
+                                ReturnType="Next"
+                                VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Password Field with Toggle Icon -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Contraseña"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#CBD5E1" />
+                        <Border
+                            Stroke="#475569"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#0F172A"
+                            HeightRequest="50"
+                            Padding="12,0">
+                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                <Entry
+                                    Grid.Column="0"
+                                    Text="{Binding Password}"
+                                    Placeholder="••••••••"
+                                    PlaceholderColor="#64748B"
+                                    TextColor="White"
+                                    IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InverseBoolConverter}}"
+                                    ReturnType="Done"
+                                    VerticalOptions="Center" />
+                                <Button
+                                    Grid.Column="1"
+                                    Command="{Binding TogglePasswordVisibilityCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="#38BDF8"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    Padding="8,0"
+                                    MinimumWidthRequest="48"
+                                    HeightRequest="44">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsPasswordVisible}" Value="True">
+                                            <Setter Property="Text" Value="OCULTAR" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsPasswordVisible}" Value="False">
+                                            <Setter Property="Text" Value="MOSTRAR" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Login Button -->
+                    <Button
+                        Text="INICIAR SESIÓN"
+                        Command="{Binding LoginCommand}"
+                        HeightRequest="50"
+                        CornerRadius="8"
+                        BackgroundColor="#0284C7"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        IsEnabled="{Binding IsNotBusy}"
+                        Margin="0,8,0,0" />
+
+                    <!-- Activity Indicator -->
+                    <ActivityIndicator
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Color="#0284C7"
+                        HeightRequest="40"
+                        WidthRequest="40"
+                        HorizontalOptions="Center" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Bottom Version Info -->
+            <Label
+                Text="CargoPulse Field Operations v1.0 • Sprint 1"
+                FontSize="11"
+                TextColor="#64748B"
+                HorizontalTextAlignment="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,3 +1,8 @@
+using CargoPulse.Mobile.Core.Constants;
+using CargoPulse.Mobile.Core.Services;
+using CargoPulse.Mobile.Data.Services;
+using CargoPulse.Mobile.ViewModels;
+using CargoPulse.Mobile.Views;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using ZXing.Net.Maui.Controls;
@@ -18,6 +23,24 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+        // Core & Data Services
+        builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
+        builder.Services.AddSingleton(sp => new HttpClient
+        {
+            BaseAddress = new Uri(ApiConstants.DefaultBaseUrl),
+            Timeout = TimeSpan.FromSeconds(ApiConstants.DefaultTimeoutSeconds)
+        });
+        builder.Services.AddSingleton<IAuthApiClient, AuthApiClient>();
+        builder.Services.AddSingleton<IAuthService, AuthService>();
+
+        // ViewModels
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<DashboardViewModel>();
+
+        // Views
+        builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<DashboardPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
