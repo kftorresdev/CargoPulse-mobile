@@ -32,6 +32,11 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
 
     private void OnConnectivityChanged(object? sender, bool isConnected)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (isConnected)
         {
             _ = SafeSyncPendingInspectionsAsync();
@@ -42,7 +47,16 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
     {
         try
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             await SyncPendingInspectionsAsync().ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+            // Suppress if disposed while background sync was running
         }
         catch
         {
@@ -57,13 +71,28 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
             return 0;
         }
 
-        if (!await _syncLock.WaitAsync(0, cancellationToken).ConfigureAwait(false))
+        bool lockAcquired = false;
+        try
+        {
+            lockAcquired = await _syncLock.WaitAsync(0, cancellationToken).ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+            return 0;
+        }
+
+        if (!lockAcquired)
         {
             return 0;
         }
 
         try
         {
+            if (_disposed)
+            {
+                return 0;
+            }
+
             IsSyncing = true;
 
             List<LocalInspectionRecord> pending;
@@ -173,7 +202,47 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
         finally
         {
             IsSyncing = false;
-            _syncLock.Release();
+            try
+            {
+                _syncLock.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+    }
+
+    private const long MaxPhotoSizeBytes = 20 * 1024 * 1024; // 20 MB max per photo
+    private const int MaxBase64StringLength = 30 * 1024 * 1024; // Bound on inline base64 string
+    private const int MaxPhotosPerInspection = 10;
+
+    private static async Task<string?> ReadPhotoBase64Async(string filePath, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length <= 0 || fileInfo.Length > MaxPhotoSizeBytes)
+            {
+                return null;
+            }
+
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 8192, useAsync: true);
+            using var memoryStream = new MemoryStream((int)fileInfo.Length);
+            await fileStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+
+            var bytes = memoryStream.ToArray();
+            var base64 = Convert.ToBase64String(bytes);
+            Array.Clear(bytes, 0, bytes.Length);
+            return base64;
+        }
+        catch (Exception)
+        {
+            return null;
         }
     }
 
@@ -197,6 +266,11 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
             int index = 0;
             foreach (var element in doc.RootElement.EnumerateArray())
             {
+                if (photos.Count >= MaxPhotosPerInspection)
+                {
+                    break;
+                }
+
                 index++;
                 string? filePath = null;
                 string? fileName = null;
@@ -254,10 +328,9 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
                 }
 
                 string base64String = string.Empty;
-                if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+                if (!string.IsNullOrWhiteSpace(filePath))
                 {
-                    byte[] bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
-                    base64String = Convert.ToBase64String(bytes);
+                    base64String = await ReadPhotoBase64Async(filePath, cancellationToken).ConfigureAwait(false) ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(fileName))
                     {
                         fileName = Path.GetFileName(filePath);
@@ -265,7 +338,10 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
                 }
                 else if (!string.IsNullOrWhiteSpace(inlineContent))
                 {
-                    base64String = inlineContent;
+                    if (inlineContent.Length <= MaxBase64StringLength)
+                    {
+                        base64String = inlineContent;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(fileName))
@@ -285,12 +361,15 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
         {
             if (File.Exists(photosJson))
             {
-                byte[] bytes = await File.ReadAllBytesAsync(photosJson, cancellationToken).ConfigureAwait(false);
-                photos.Add(new PhotoUploadDto(
-                    FileName: Path.GetFileName(photosJson),
-                    ContentType: GetContentType(photosJson),
-                    Base64Content: Convert.ToBase64String(bytes)
-                ));
+                var base64 = await ReadPhotoBase64Async(photosJson, cancellationToken).ConfigureAwait(false);
+                if (base64 != null)
+                {
+                    photos.Add(new PhotoUploadDto(
+                        FileName: Path.GetFileName(photosJson),
+                        ContentType: GetContentType(photosJson),
+                        Base64Content: base64
+                    ));
+                }
             }
         }
 
@@ -311,13 +390,23 @@ public class BackgroundSyncEngine : ISyncEngine, IDisposable
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
         if (_disposed)
         {
             return;
         }
 
+        if (disposing)
+        {
+            _connectivityService.ConnectivityChanged -= OnConnectivityChanged;
+            _syncLock.Dispose();
+        }
+
         _disposed = true;
-        _connectivityService.ConnectivityChanged -= OnConnectivityChanged;
-        _syncLock.Dispose();
     }
 }

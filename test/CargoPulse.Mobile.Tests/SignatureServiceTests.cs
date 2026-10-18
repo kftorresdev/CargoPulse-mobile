@@ -51,4 +51,62 @@ public class SignatureServiceTests
         result.Should().Be(expectedBase64);
         result.Should().StartWith("data:image/png;base64,");
     }
+
+    [Fact]
+    public async Task ConvertDrawingStreamToBase64Async_WhenCorruptOrNonImageBytes_ReturnsEmptyString()
+    {
+        // Arrange - random non-image bytes
+        var corruptBytes = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05 };
+        using var corruptStream = new MemoryStream(corruptBytes);
+
+        // Act
+        var result = await _service.ConvertDrawingStreamToBase64Async(corruptStream);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ConvertDrawingStreamToBase64Async_WhenFewerThanFourBytes_ReturnsEmptyString()
+    {
+        // Arrange
+        var tinyBytes = new byte[] { 0x89, 0x50 };
+        using var tinyStream = new MemoryStream(tinyBytes);
+
+        // Act
+        var result = await _service.ConvertDrawingStreamToBase64Async(tinyStream);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ConvertDrawingStreamToBase64Async_WhenStreamExceedsMaxSize_ReturnsEmptyString()
+    {
+        // Arrange - Create a dummy stream larger than 5 MB
+        // We use a stream that generates bytes on the fly without large allocation
+        var oversizedStream = new MemoryStream(new byte[6 * 1024 * 1024]);
+
+        // Act
+        var result = await _service.ConvertDrawingStreamToBase64Async(oversizedStream);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ConvertDrawingStreamToBase64Async_WhenValidJpegStream_ReturnsDataUriBase64()
+    {
+        // Arrange - JPEG header: FF D8 FF
+        var jpegBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46 };
+        using var validJpegStream = new MemoryStream(jpegBytes);
+
+        // Act
+        var result = await _service.ConvertDrawingStreamToBase64Async(validJpegStream);
+
+        // Assert
+        result.Should().NotBeEmpty();
+        result.Should().StartWith("data:image/png;base64,");
+    }
 }
+

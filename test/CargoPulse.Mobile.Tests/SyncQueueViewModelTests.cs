@@ -153,12 +153,39 @@ public class SyncQueueViewModelTests
     }
 
     [Fact]
-    public void Dispose_UnsubscribesFromEvents()
+    public void Dispose_UnsubscribesFromEventsAndIsIdempotent()
+    {
+        // Act - Dispose once
+        _sut.Dispose();
+
+        // Calling Dispose again should not throw
+        var act = () => _sut.Dispose();
+        act.Should().NotThrow();
+
+        // Raise events - should not update view model properties
+        _mockConnectivity.Raise(c => c.ConnectivityChanged += null, _mockConnectivity.Object, false);
+        _sut.IsOnline.Should().BeTrue();
+
+        _mockSyncEngine.Raise(s => s.SyncProgressChanged += null, new SyncProgressEventArgs
+        {
+            Total = 10,
+            Processed = 5,
+            Message = "Test message after dispose"
+        });
+        _sut.SyncMessage.Should().BeEmpty();
+        _sut.ProgressPercent.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Commands_WhenDisposed_DoNotExecute()
     {
         _sut.Dispose();
 
-        _mockConnectivity.Raise(c => c.ConnectivityChanged += null, _mockConnectivity.Object, false);
-        // IsOnline was true previously and event should not update after dispose
-        _sut.IsOnline.Should().BeTrue();
+        await _sut.RefreshCommand.ExecuteAsync(null);
+        _mockRepo.Verify(r => r.GetAllInspectionsAsync(), Times.Never);
+
+        await _sut.ForceSyncCommand.ExecuteAsync(null);
+        _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
+

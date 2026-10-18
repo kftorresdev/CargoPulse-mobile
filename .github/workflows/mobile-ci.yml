@@ -36,16 +36,17 @@ jobs:
         run: |
           dotnet test test/CargoPulse.Mobile.Tests/CargoPulse.Mobile.Tests.csproj --configuration Release --verbosity normal
 
-      - name: Build & Publish Android App (net9.0-android)
+      - name: Build Android Release APK (net9.0-android)
         run: |
-          dotnet publish src/CargoPulse.Mobile.csproj -f net9.0-android -c Release
+          dotnet build src/CargoPulse.Mobile.csproj -f net9.0-android -c Release
 
       - name: Archive Android Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: CargoPulse-Mobile-Android-Artifacts
           path: |
-            src/bin/Release/net9.0-android/publish/*.aab
-            src/bin/Release/net9.0-android/publish/*.apk
             src/bin/Release/net9.0-android/*.apk
-          if-no-files-found: ignore
+            src/bin/Release/net9.0-android/publish/*.apk
+            src/bin/Release/net9.0-android/mapping.txt
+          retention-days: 7
+          if-no-files-found: error

@@ -54,6 +54,11 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
 
     private void OnSyncProgressChanged(object? sender, SyncProgressEventArgs e)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         SyncMessage = e.Message ?? string.Empty;
         if (e.Total > 0)
         {
@@ -69,12 +74,22 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
 
     private void OnConnectivityChanged(object? sender, bool isConnected)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         IsOnline = isConnected;
     }
 
     [RelayCommand]
     public async Task RefreshAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         try
         {
             IsBusy = true;
@@ -105,7 +120,7 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
     [RelayCommand]
     public async Task ForceSyncAsync()
     {
-        if (IsBusy || IsSyncing)
+        if (_disposed || IsBusy || IsSyncing)
         {
             return;
         }
@@ -138,13 +153,24 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
         if (_disposed)
         {
             return;
         }
 
+        if (disposing)
+        {
+            _syncEngine.SyncProgressChanged -= OnSyncProgressChanged;
+            _connectivityService.ConnectivityChanged -= OnConnectivityChanged;
+        }
+
         _disposed = true;
-        _syncEngine.SyncProgressChanged -= OnSyncProgressChanged;
-        _connectivityService.ConnectivityChanged -= OnConnectivityChanged;
     }
 }
+

@@ -1,0 +1,17 @@
+# ==============================================================================
+# CargoPulse Mobile E2E Test Suite - Master Execution Flow
+# ==============================================================================
+# Orchestrates all individual flows in sequential dependency order.
+appId: com.cargopulse.mobile
+---
+# Flow 01: Authentication & RBAC Verification
+- runFlow: flows/01_auth_flow.yaml
+
+# Flow 02: Manual Tracking Search & Shipment Detail
+- runFlow: flows/02_manual_search_and_detail_flow.yaml
+
+# Flow 03: Physical Inspection, Seal Mismatch, Damaged Report & Digital Signature
+- runFlow: flows/03_inspection_and_signature_flow.yaml
+
+# Flow 04: SQLite Offline Queue & Background Sync Engine
+- runFlow: flows/04_offline_sync_flow.yaml

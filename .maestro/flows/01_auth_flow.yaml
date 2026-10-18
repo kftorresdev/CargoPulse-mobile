@@ -1,0 +1,88 @@
+# ==============================================================================
+# CargoPulse Mobile E2E Test - Flow 01: Authentication & RBAC Verification
+# ==============================================================================
+appId: com.cargopulse.mobile
+---
+# 1. Launch CargoPulse Mobile with clear state to guarantee fresh session
+- launchApp:
+    clearState: true
+
+# 2. Wait for Login Page & Brand Presentation
+- extendedWaitUntil:
+    visible: "Acceso al Sistema"
+    timeout: 15000
+
+- assertVisible: "CARGOPULSE"
+- assertVisible: "Field Operations Companion"
+- assertVisible: "Correo Electrónico"
+- assertVisible: "Contraseña"
+- assertVisible: "INICIAR SESIÓN"
+
+# ------------------------------------------------------------------------------
+# 3. Negative Validation: Empty Password Error Assertion
+# ------------------------------------------------------------------------------
+# Tap email input field and provide operator credentials
+- tapOn:
+    text: "operador@cargopulse.com"
+    optional: true
+- tapOn:
+    text: "Correo Electrónico"
+    optional: true
+
+- inputText: "operador@cargopulse.com"
+- hideKeyboard
+
+# Leave password field intentionally empty and attempt login
+- tapOn: "INICIAR SESIÓN"
+
+# Assert standard validation error banner is displayed
+- extendedWaitUntil:
+    visible: "El correo y la contraseña son requeridos"
+    timeout: 5000
+- assertVisible: "El correo y la contraseña son requeridos"
+
+# ------------------------------------------------------------------------------
+# 4. Positive Authentication: Valid Credentials Entry
+# ------------------------------------------------------------------------------
+# Focus password field
+- tapOn:
+    text: "••••••••"
+    optional: true
+- tapOn:
+    text: "Contraseña"
+    optional: true
+
+- inputText: "Operador2026!"
+- hideKeyboard
+
+# Submit credentials
+- tapOn: "INICIAR SESIÓN"
+
+# ------------------------------------------------------------------------------
+# 5. Assert Dashboard Page & Role-Based Access Control (RBAC)
+# ------------------------------------------------------------------------------
+- extendedWaitUntil:
+    visible: "Operador en Turno"
+    timeout: 15000
+
+# Operator role pill badge
+- assertVisible: "LOGISTICS_OPERATOR"
+
+# Section header
+- assertVisible: "ACCIONES OPERATIVAS"
+
+# Operational action cards
+- assertVisible: "Escanear Contenedor"
+- assertVisible: "ESCANEAR AHORA"
+
+- assertVisible: "Cola Offline"
+- assertVisible: "VER COLA DE SINCRONIZACIÓN"
+
+- assertVisible: "Embarques Asignados"
+- assertVisible: "CONSULTAR EMBARQUES"
+
+# Bottom Navigation TabBar
+- assertVisible: "Dashboard"
+- assertVisible: "Escáner"
+- assertVisible: "Embarques"
+- assertVisible: "Sincronización"

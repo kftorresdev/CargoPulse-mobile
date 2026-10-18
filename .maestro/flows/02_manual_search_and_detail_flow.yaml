@@ -1,0 +1,112 @@
+# ==============================================================================
+# CargoPulse Mobile E2E Test - Flow 02: Manual Search & Shipment Detail
+# ==============================================================================
+appId: com.cargopulse.mobile
+---
+# Ensure app is running and active
+- launchApp:
+    clearState: false
+
+# ------------------------------------------------------------------------------
+# 1. State Precondition: Authenticate if sitting on Login screen
+# ------------------------------------------------------------------------------
+- runFlow:
+    when:
+      visible: "Acceso al Sistema"
+    commands:
+      - tapOn:
+          text: "operador@cargopulse.com"
+          optional: true
+      - inputText: "operador@cargopulse.com"
+      - tapOn:
+          text: "••••••••"
+          optional: true
+      - inputText: "Operador2026!"
+      - hideKeyboard
+      - tapOn: "INICIAR SESIÓN"
+      - extendedWaitUntil:
+          visible: "Operador en Turno"
+          timeout: 15000
+
+# ------------------------------------------------------------------------------
+# 2. Navigate from Dashboard to Manual Entry (scanner/manual or via tab)
+# ------------------------------------------------------------------------------
+# Navigate to Scanner screen first if currently on Dashboard
+- runFlow:
+    when:
+      visible: "ESCANEAR AHORA"
+    commands:
+      - tapOn: "ESCANEAR AHORA"
+
+# If still not in scanner/manual, tap bottom tab "Escáner"
+- runFlow:
+    when:
+      notVisible: "BÚSQUEDA MANUAL"
+    commands:
+      - tapOn:
+          text: "Escáner"
+          optional: true
+
+# From Optical Scanner Viewfinder, tap "Búsqueda Manual" action button
+- runFlow:
+    when:
+      notVisible: "BÚSQUEDA MANUAL"
+    commands:
+      - extendedWaitUntil:
+          visible: "⌨ Búsqueda Manual"
+          timeout: 8000
+      - tapOn:
+          text: ".*Búsqueda Manual.*"
+
+# ------------------------------------------------------------------------------
+# 3. Enter Tracking Number & Submit Search
+# ------------------------------------------------------------------------------
+- extendedWaitUntil:
+    visible: "BÚSQUEDA MANUAL"
+    timeout: 10000
+
+- assertVisible: "BÚSQUEDA MANUAL"
+- assertVisible: "Número de Tracking / Contenedor"
+
+# Focus input field and type tracking number 'MX-TX-99881'
+- tapOn:
+    text: "Ej. CP-789012"
+    optional: true
+- tapOn:
+    text: "Número de Tracking / Contenedor"
+    optional: true
+
+- inputText: "MX-TX-99881"
+- hideKeyboard
+
+# Tap 'Buscar Embarque' search action
+- tapOn: "Buscar Embarque"
+
+# ------------------------------------------------------------------------------
+# 4. Assert Shipment Detail Page Components
+# ------------------------------------------------------------------------------
+- extendedWaitUntil:
+    visible: "DETALLE DEL EMBARQUE"
+    timeout: 15000
+
+# Top App Bar
+- assertVisible: "DETALLE DEL EMBARQUE"
+
+# Tracking Badge
+- assertVisible: "NÚMERO DE GUÍA / TRACKING"
+- assertVisible:
+    text: ".*MX-TX-99881.*"
+
+# Carrier Info Card
+- assertVisible: "Transportista Asignado"
+
+# Prominent Inspection Trigger Button
+- assertVisible:
+    text: ".*INICIAR INSPECCIÓN.*"
+
+# Stage Timeline
+- scrollUntilVisible:
+    element: "Etapas de la Ruta Logística"
+    direction: DOWN
+
+- assertVisible: "Etapas de la Ruta Logística"

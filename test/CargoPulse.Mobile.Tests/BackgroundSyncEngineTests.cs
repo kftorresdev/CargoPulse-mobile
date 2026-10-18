@@ -267,4 +267,62 @@ public class BackgroundSyncEngineTests : IDisposable
         // Assert
         _mockRepository.Verify(r => r.GetPendingInspectionsAsync(), Times.Never);
     }
+
+    [Fact]
+    public void Dispose_CanBeCalledMultipleTimesSafely()
+    {
+        var sut = CreateSut();
+        sut.Dispose();
+        var act = () => sut.Dispose();
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task SyncPendingInspectionsAsync_WhenDisposed_ReturnsZeroImmediately()
+    {
+        var sut = CreateSut();
+        sut.Dispose();
+
+        var result = await sut.SyncPendingInspectionsAsync();
+        result.Should().Be(0);
+        _mockRepository.Verify(r => r.GetPendingInspectionsAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task SyncPendingInspectionsAsync_WhenPhotoZeroBytes_SkipsEmptyPhoto()
+    {
+        var tempFile = Path.GetTempFileName();
+        _tempFilesToCleanup.Add(tempFile);
+        await File.WriteAllBytesAsync(tempFile, Array.Empty<byte>());
+
+        var photosJson = JsonSerializer.Serialize(new[] { tempFile });
+        var pendingItem = new LocalInspectionRecord
+        {
+            Id = "insp-empty-photo",
+            ShipmentId = "ship-photo-empty",
+            PhotosJson = photosJson
+        };
+
+        _mockRepository.Setup(r => r.GetPendingInspectionsAsync())
+            .ReturnsAsync(new List<LocalInspectionRecord> { pendingItem });
+
+        CreateInspectionRequestDto? uploadedDto = null;
+        var syncResponse = new InspectionSyncResponseDto(
+            true,
+            new InspectionSyncResultDto("insp-empty-photo", "ship-photo-empty", "SYNCED", DateTime.UtcNow, false),
+            DateTime.UtcNow);
+
+        _mockApiClient.Setup(a => a.UploadInspectionAsync(It.IsAny<CreateInspectionRequestDto>(), It.IsAny<CancellationToken>()))
+            .Callback<CreateInspectionRequestDto, CancellationToken>((dto, _) => uploadedDto = dto)
+            .ReturnsAsync(syncResponse);
+
+        using var sut = CreateSut();
+        var result = await sut.SyncPendingInspectionsAsync();
+
+        result.Should().Be(1);
+        uploadedDto.Should().NotBeNull();
+        uploadedDto!.Photos.Should().HaveCount(1);
+        uploadedDto.Photos[0].Base64Content.Should().BeEmpty();
+    }
 }
+
