@@ -266,6 +266,23 @@ Cada commit debe seguir la estructura: `<tipo>(<alcance>): <descripción imperat
 - **`test:`** Adición o corrección de pruebas (ej. `test(e2e): add user registration suite with playwright`).
 - **`chore:`** Tareas auxiliares, dependencias o configuración de compilación (ej. `chore(deps): update prisma to v6`).
 
+### 7.3 Gobernanza de Repositorios Remotos en GitHub y Aprovisionamiento de Credenciales (GitHub PAT Protocol)
+Todo software desarrollado bajo esta Constitución está destinado a residir y versionarse en GitHub para control de código fuente, colaboración y ejecución de pipelines de CI/CD.
+
+1. **Aprovisionamiento Temprano en GitHub (Sprint 0):**
+   - En la Fase 0 o Sprint 0 (Scaffolding), el repositorio remoto en GitHub **DEBE quedar creado y enlazado** (`git remote add origin https://github.com/<usuario>/<repositorio>.git`).
+   - Queda terminantemente prohibido avanzar múltiples sprints en un repositorio exclusivamente local sin respaldo remoto ni vinculación a GitHub.
+2. **Protocolo de Verificación y Solicitud de Token (GitHub PAT):**
+   - El Asistente de IA debe comprobar si el entorno local ya cuenta con credenciales activas en el almacén del sistema (`git config credential.helper` / `~/.git-credentials`).
+   - Si no existe un token configurado o si no se cuenta con acceso al repositorio remoto, **el Asistente TIENE LA OBLIGACIÓN de solicitar formalmente al usuario desarrollador su Personal Access Token (PAT)** con permisos de `repo` y `workflow` desde el inicio del proyecto.
+3. **Sincronización Mandatoria en Cierres de Sprint y Release:**
+   - Al finalizar cada Sprint y especialmente al sellar un Release (`v1.0.0`), el Asistente debe ejecutar la sincronización completa:
+     ```powershell
+     git push -u origin main
+     git push origin <tag_de_release> # ej. git push origin v1.0.0
+     ```
+   - El Asistente debe certificar que tanto la rama de producción (`main`) como las etiquetas de versión (`tags`) y la documentación canónica (`README.md`, `docs/RELEASE_NOTES_v*.md`) queden públicas y visibles en la URL remota de GitHub.
+
 ---
 
 ## 🧪 8. Estándar de Testing y Calidad (QA)
