@@ -1,9 +1,14 @@
-﻿namespace CargoPulse.Mobile;
+using CargoPulse.Mobile.Views;
+
+namespace CargoPulse.Mobile;
 
 public partial class AppShell : Shell
 {
-	public AppShell()
-	{
-		InitializeComponent();
-	}
+    public AppShell()
+    {
+        InitializeComponent();
+
+        Routing.RegisterRoute("shipment/detail", typeof(ShipmentDetailPage));
+        Routing.RegisterRoute("scanner/manual", typeof(ManualEntryPage));
+    }
 }

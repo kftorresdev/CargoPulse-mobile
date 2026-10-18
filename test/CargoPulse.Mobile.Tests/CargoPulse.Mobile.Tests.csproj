@@ -25,6 +25,8 @@
     <Compile Include="..\..\src\Core\Services\ISecureStorageService.cs" LinkBase="Core\Services\ISecureStorageService.cs" />
     <Compile Include="..\..\src\Core\Services\IAuthService.cs" LinkBase="Core\Services\IAuthService.cs" />
     <Compile Include="..\..\src\Core\Services\AuthService.cs" LinkBase="Core\Services\AuthService.cs" />
+    <Compile Include="..\..\src\Core\Services\IHapticService.cs" LinkBase="Core\Services\IHapticService.cs" />
+    <Compile Include="..\..\src\Core\Services\HapticService.cs" LinkBase="Core\Services\HapticService.cs" />
     <Compile Include="..\..\src\Core\Handlers\**\*.cs" LinkBase="Core\Handlers" />
     <Compile Include="..\..\src\Data\**\*.cs" LinkBase="Data" />
     <Compile Include="..\..\src\ViewModels\**\*.cs" LinkBase="ViewModels" />

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             x:Class="CargoPulse.Mobile.Views.ManualEntryPage"
+             x:DataType="viewModels:ManualEntryViewModel"
+             BackgroundColor="#0F172A"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24"
+            Spacing="24"
+            VerticalOptions="Center"
+            MaximumWidthRequest="450">
+
+            <!-- Header -->
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Border
+                    Stroke="#0284C7"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 20"
+                    BackgroundColor="#1E293B"
+                    WidthRequest="72"
+                    HeightRequest="72"
+                    HorizontalOptions="Center">
+                    <Label
+                        Text="⌨"
+                        FontSize="32"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </Border>
+
+                <Label
+                    Text="BÚSQUEDA MANUAL"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center"
+                    TextColor="White"
+                    CharacterSpacing="1.5" />
+
+                <Label
+                    Text="Ingrese el número de tracking o guía física de transporte"
+                    FontSize="13"
+                    HorizontalTextAlignment="Center"
+                    TextColor="#94A3B8" />
+            </VerticalStackLayout>
+
+            <!-- Card Container -->
+            <Border
+                Stroke="#334155"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="#1E293B"
+                Padding="20">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Error Alert Banner -->
+                    <Border
+                        Stroke="#DC2626"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="#450A0A"
+                        Padding="12,10"
+                        IsVisible="{Binding HasErrorMessage}">
+                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                            <Label Text="⚠" TextColor="#EF4444" FontSize="16" VerticalOptions="Center" />
+                            <Label
+                                Text="{Binding ErrorMessage}"
+                                TextColor="#FECACA"
+                                FontSize="13"
+                                LineBreakMode="WordWrap"
+                                VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Tracking Input Field -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Número de Tracking / Contenedor"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#CBD5E1" />
+                        <Border
+                            Stroke="#475569"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#0F172A"
+                            Padding="12,4">
+                            <Entry
+                                Text="{Binding TrackingNumber}"
+                                Placeholder="Ej. CP-789012"
+                                PlaceholderColor="#64748B"
+                                TextColor="White"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                ClearButtonVisibility="WhileEditing"
+                                ReturnType="Search"
+                                ReturnCommand="{Binding SearchCommand}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Search Button -->
+                    <Button
+                        Text="Buscar Embarque"
+                        Command="{Binding SearchCommand}"
+                        IsEnabled="{Binding IsNotBusy}"
+                        BackgroundColor="#0284C7"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Margin="0,8,0,0" />
+
+                    <!-- Activity Indicator -->
+                    <ActivityIndicator
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Color="#38BDF8"
+                        HeightRequest="32" />
+
+                    <!-- Cancel / Return Button -->
+                    <Button
+                        Text="Cancelar y Volver al Escáner"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="#94A3B8"
+                        FontSize="13"
+                        HeightRequest="42" />
+
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

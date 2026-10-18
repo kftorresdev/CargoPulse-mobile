@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             xmlns:dtos="clr-namespace:CargoPulse.Mobile.Data.Dtos"
+             x:Class="CargoPulse.Mobile.Views.ShipmentsListPage"
+             x:DataType="viewModels:ShipmentsListViewModel"
+             BackgroundColor="#F8FAFC"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Loaded"
+            Command="{Binding LoadShipmentsCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto, Auto, *">
+
+        <!-- Top Industrial Header Bar -->
+        <Border
+            Grid.Row="0"
+            BackgroundColor="#0F172A"
+            StrokeThickness="0"
+            Padding="20,16">
+            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label
+                        Text="CARGOPULSE FLEET"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="#38BDF8"
+                        CharacterSpacing="1" />
+                    <Label
+                        Text="Embarques en Tránsito"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="White" />
+                </VerticalStackLayout>
+
+                <Border
+                    Grid.Column="1"
+                    BackgroundColor="#1E293B"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="10,6"
+                    VerticalOptions="Center">
+                    <Label
+                        Text="{Binding Shipments.Count, StringFormat='{0} Activos'}"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        TextColor="#38BDF8" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Search Bar Section -->
+        <Border
+            Grid.Row="1"
+            BackgroundColor="White"
+            Stroke="#E2E8F0"
+            StrokeThickness="1"
+            Padding="12,8">
+            <SearchBar
+                Text="{Binding SearchText}"
+                Placeholder="Buscar por guía o transportista..."
+                PlaceholderColor="#94A3B8"
+                TextColor="#0F172A"
+                SearchCommand="{Binding LoadShipmentsCommand}"
+                CancelButtonColor="#0284C7"
+                BackgroundColor="Transparent"
+                HeightRequest="46" />
+        </Border>
+
+        <!-- Main List with Pull-to-Refresh -->
+        <RefreshView
+            Grid.Row="2"
+            IsRefreshing="{Binding IsRefreshing}"
+            Command="{Binding RefreshCommand}"
+            RefreshColor="#0284C7">
+
+            <CollectionView
+                ItemsSource="{Binding Shipments}"
+                SelectionMode="None"
+                EmptyView="No se encontraron embarques disponibles">
+
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.Header>
+                    <BoxView HeightRequest="8" Color="Transparent" />
+                </CollectionView.Header>
+
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="24" Color="Transparent" />
+                </CollectionView.Footer>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="dtos:ShipmentDto">
+                        <Border
+                            Margin="16,0"
+                            Stroke="#E2E8F0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            BackgroundColor="White"
+                            Padding="16">
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:ShipmentsListViewModel}}, Path=SelectShipmentCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <VerticalStackLayout Spacing="10">
+
+                                <!-- Tracking and Status Pill -->
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding TrackingNumber}"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="#0284C7"
+                                        FontFamily="Monospace"
+                                        VerticalOptions="Center" />
+
+                                    <!-- Status Pill -->
+                                    <Border
+                                        Grid.Column="1"
+                                        BackgroundColor="#0F172A"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 12"
+                                        Padding="10,4"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Text="{Binding CurrentStatus}"
+                                            FontSize="10"
+                                            FontAttributes="Bold"
+                                            TextColor="#38BDF8" />
+                                    </Border>
+                                </Grid>
+
+                                <!-- Route: Origin -> Destination -->
+                                <Grid ColumnDefinitions="*, Auto, *" ColumnSpacing="6" VerticalOptions="Center">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding Origin}"
+                                        FontSize="12"
+                                        TextColor="#334155"
+                                        LineBreakMode="TailTruncation" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="➔"
+                                        FontSize="12"
+                                        TextColor="#94A3B8"
+                                        VerticalOptions="Center" />
+
+                                    <Label
+                                        Grid.Column="2"
+                                        Text="{Binding Destination}"
+                                        FontSize="12"
+                                        TextColor="#334155"
+                                        HorizontalTextAlignment="End"
+                                        LineBreakMode="TailTruncation" />
+                                </Grid>
+
+                                <BoxView Color="#F1F5F9" HeightRequest="1" />
+
+                                <!-- Carrier and ETA Details -->
+                                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
+                                        <Label Text="🚛" FontSize="12" VerticalOptions="Center" />
+                                        <Label
+                                            Text="{Binding CarrierName}"
+                                            FontSize="11"
+                                            TextColor="#64748B"
+                                            LineBreakMode="TailTruncation"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding Eta, StringFormat='ETA: {0:dd/MM HH:mm}'}"
+                                        FontSize="11"
+                                        FontAttributes="Bold"
+                                        TextColor="#475569"
+                                        VerticalOptions="Center" />
+                                </Grid>
+
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <!-- Empty View Template -->
+                <CollectionView.EmptyViewTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout
+                            Padding="32"
+                            Spacing="12"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                            <Label Text="📦" FontSize="40" HorizontalOptions="Center" />
+                            <Label
+                                Text="No se encontraron embarques"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="#0F172A"
+                                HorizontalOptions="Center" />
+                            <Label
+                                Text="Deslice hacia abajo para actualizar la lista o verifique los términos de búsqueda."
+                                FontSize="12"
+                                TextColor="#64748B"
+                                HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.EmptyViewTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

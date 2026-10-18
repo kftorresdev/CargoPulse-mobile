@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             xmlns:dtos="clr-namespace:CargoPulse.Mobile.Data.Dtos"
+             x:Class="CargoPulse.Mobile.Views.ShipmentDetailPage"
+             x:DataType="viewModels:ShipmentDetailViewModel"
+             BackgroundColor="#F8FAFC"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Top Industrial App Bar -->
+        <Border
+            Grid.Row="0"
+            BackgroundColor="#0F172A"
+            StrokeThickness="0"
+            Padding="16,14">
+            <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                <Button
+                    Grid.Column="0"
+                    Text="←"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="#1E293B"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="8"
+                    Padding="0" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="DETALLE DEL EMBARQUE"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="Center"
+                    CharacterSpacing="1" />
+
+                <Button
+                    Grid.Column="2"
+                    Text="🔄"
+                    Command="{Binding RefreshCommand}"
+                    BackgroundColor="#1E293B"
+                    TextColor="White"
+                    FontSize="14"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="8"
+                    Padding="0" />
+            </Grid>
+        </Border>
+
+        <!-- Loading State View -->
+        <Grid
+            Grid.Row="1"
+            IsVisible="{Binding IsBusy}"
+            BackgroundColor="#F8FAFC">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#0284C7" WidthRequest="44" HeightRequest="44" />
+                <Label Text="Cargando información del embarque..." TextColor="#475569" FontSize="14" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Error State View -->
+        <Grid
+            Grid.Row="1"
+            IsVisible="{Binding HasErrorMessage}"
+            Padding="24"
+            BackgroundColor="#F8FAFC">
+            <Border
+                Stroke="#DC2626"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                BackgroundColor="#FEF2F2"
+                Padding="20"
+                VerticalOptions="Center"
+                MaximumWidthRequest="400">
+                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                    <Label Text="⚠" TextColor="#DC2626" FontSize="32" HorizontalOptions="Center" />
+                    <Label Text="Error al Cargar Embarque" FontSize="16" FontAttributes="Bold" TextColor="#991B1B" HorizontalOptions="Center" />
+                    <Label Text="{Binding ErrorMessage}" TextColor="#7F1D1D" FontSize="13" HorizontalTextAlignment="Center" LineBreakMode="WordWrap" />
+                    <Button
+                        Text="Reintentar Consulta"
+                        Command="{Binding RefreshCommand}"
+                        BackgroundColor="#DC2626"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="44"
+                        Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Main Content Area -->
+        <ScrollView Grid.Row="1" IsVisible="{Binding IsNotBusy}">
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- 1. Industrial Summary Card -->
+                <Border
+                    Stroke="#E2E8F0"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="14">
+
+                        <!-- Tracking & Status Badge -->
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="NÚMERO DE GUÍA / TRACKING" FontSize="10" FontAttributes="Bold" TextColor="#64748B" />
+                                <Label
+                                    Text="{Binding Shipment.TrackingNumber}"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    TextColor="#0284C7"
+                                    FontFamily="Monospace" />
+                            </VerticalStackLayout>
+
+                            <!-- Status Badge -->
+                            <Border
+                                Grid.Column="1"
+                                BackgroundColor="#0F172A"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="12,6"
+                                VerticalOptions="Center">
+                                <Label
+                                    Text="{Binding Shipment.CurrentStatus}"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="#38BDF8" />
+                            </Border>
+                        </Grid>
+
+                        <BoxView Color="#E2E8F0" HeightRequest="1" />
+
+                        <!-- Carrier Info -->
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                            <Label Text="🚛" FontSize="18" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1">
+                                <Label Text="Transportista Asignado" FontSize="10" TextColor="#64748B" />
+                                <Label Text="{Binding Shipment.CarrierName}" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Route: Origin -> Destination -->
+                        <Grid ColumnDefinitions="*, Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="ORIGEN" FontSize="10" FontAttributes="Bold" TextColor="#64748B" />
+                                <Label Text="{Binding Shipment.Origin}" FontSize="12" FontAttributes="Bold" TextColor="#0F172A" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="1" Text="➔" FontSize="18" TextColor="#0284C7" VerticalOptions="Center" />
+
+                            <VerticalStackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End">
+                                <Label Text="DESTINO" FontSize="10" FontAttributes="Bold" TextColor="#64748B" HorizontalTextAlignment="End" />
+                                <Label Text="{Binding Shipment.Destination}" FontSize="12" FontAttributes="Bold" TextColor="#0F172A" HorizontalTextAlignment="End" LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- ETA -->
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="🕒" FontSize="14" TextColor="#64748B" VerticalOptions="Center" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding Shipment.Eta, StringFormat='Fecha Estimada de Arribo (ETA): {0:dd/MM/yyyy HH:mm}'}"
+                                FontSize="12"
+                                TextColor="#475569" />
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. Prominent Action Button: Start Inspection -->
+                <Button
+                    Text="⚡ INICIAR INSPECCIÓN DE CONTENEDOR"
+                    Command="{Binding StartInspectionCommand}"
+                    BackgroundColor="#0284C7"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    CornerRadius="10"
+                    HeightRequest="54"
+                    CharacterSpacing="0.5" />
+
+                <!-- 3. Active Alerts Container -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                                <Label Text="🚨" FontSize="16" VerticalOptions="Center" />
+                                <Label Text="Alertas Activas del Embarque" FontSize="15" FontAttributes="Bold" TextColor="#0F172A" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+
+                            <Border
+                                Grid.Column="1"
+                                BackgroundColor="{Binding HasAlerts, Converter={x:Null}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="8,3">
+                                <Label
+                                    Text="{Binding AlertsCount, StringFormat='{0} alertas'}"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="#DC2626" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Empty Alerts Message -->
+                        <Label
+                            Text="✓ Sin alertas operativas ni discrepancias fiscales registradas."
+                            TextColor="#16A34A"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            IsVisible="{Binding HasAlerts, Converter={x:Null}}" />
+
+                        <!-- List of Alerts -->
+                        <VerticalStackLayout
+                            BindableLayout.ItemsSource="{Binding Shipment.Alerts}"
+                            Spacing="10">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="dtos:AlertDto">
+                                    <Border
+                                        Stroke="#FCA5A5"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="#FEF2F2"
+                                        Padding="12">
+                                        <VerticalStackLayout Spacing="6">
+                                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" FontSize="13" FontAttributes="Bold" TextColor="#991B1B" />
+                                                <Border
+                                                    Grid.Column="1"
+                                                    BackgroundColor="#DC2626"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Padding="6,2">
+                                                    <Label Text="{Binding Severity}" FontSize="9" FontAttributes="Bold" TextColor="White" />
+                                                </Border>
+                                            </Grid>
+                                            <Label Text="{Binding Description}" FontSize="12" TextColor="#7F1D1D" LineBreakMode="WordWrap" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 4. Timeline of Freight Stages -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="📦" FontSize="16" VerticalOptions="Center" />
+                            <Label Text="Etapas de la Ruta Logística" FontSize="15" FontAttributes="Bold" TextColor="#0F172A" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Stages List -->
+                        <VerticalStackLayout
+                            BindableLayout.ItemsSource="{Binding Shipment.Stages}"
+                            Spacing="12">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="dtos:FreightStageDto">
+                                    <Border
+                                        Stroke="#E2E8F0"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="#F8FAFC"
+                                        Padding="12">
+                                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                            <!-- Stage Order Circle -->
+                                            <Border
+                                                Grid.Column="0"
+                                                BackgroundColor="#1E293B"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 14"
+                                                WidthRequest="28"
+                                                HeightRequest="28"
+                                                VerticalOptions="Center">
+                                                <Label
+                                                    Text="{Binding StageOrder}"
+                                                    FontSize="12"
+                                                    FontAttributes="Bold"
+                                                    TextColor="White"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center" />
+                                            </Border>
+
+                                            <!-- Stage Info -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding StageType}" FontSize="13" FontAttributes="Bold" TextColor="#0F172A" />
+                                                <Label Text="{Binding AuditNotes, FallbackValue='Sin observaciones'}" FontSize="11" TextColor="#64748B" />
+                                            </VerticalStackLayout>
+
+                                            <!-- Stage Status -->
+                                            <Border
+                                                Grid.Column="2"
+                                                BackgroundColor="#E0F2FE"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 10"
+                                                Padding="8,4"
+                                                VerticalOptions="Center">
+                                                <Label Text="{Binding Status}" FontSize="10" FontAttributes="Bold" TextColor="#0369A1" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>
