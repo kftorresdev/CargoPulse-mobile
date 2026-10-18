@@ -1,4 +1,4 @@
-# MASTER SOFTWARE ENGINEERING CONSTITUTION & DEVELOPMENT STANDARD (v2.1)
+# MASTER SOFTWARE ENGINEERING CONSTITUTION & DEVELOPMENT STANDARD (v2.2)
 ## Marco de Gobernanza Técnica, Arquitectura, Especificación y Calidad de Software (Web & Mobile)
 
 > **Propósito de este documento:**  
@@ -372,3 +372,49 @@ El orquestador podrá desplegar subagentes con los siguientes perfiles de ingeni
   3. Monitorear el progreso y recolectar los artefactos generados.
   4. Resolver cualquier conflicto de integración entre las capas construidas por los distintos subagentes.
   5. Ejecutar la compilación final y correr las suites de pruebas unitarias para certificar la Definition of Done (DoD).
+
+---
+
+## 📖 12. Estándar Sagrado del README de Proyecto y Gobernanza de Documentación
+
+**Regla de Oro:** Todo proyecto desarrollado bajo esta Constitución debe contar obligatoriamente con un archivo `README.md` exhaustivo, vivo y no genérico en la raíz del repositorio. Queda terminantemente prohibido generar archivos README genéricos tipo plantilla ("This is a MAUI project...") o posponer su creación como una tarea secundaria u opcional.
+
+### 12.1 Ciclo de Vida y Momento de Creación del README
+El README no se concibe al final del proyecto como un agregado decorativo; es un artefacto de ingeniería de primer nivel que evoluciona con el software:
+1. **Génesis (Sprint 0 - Scaffolding):** Se crea el archivo `README.md` con la identidad del proyecto, insignia de estado, arquetipo técnico aprobado en TRD, requisitos previos del entorno local y comandos básicos de inicialización.
+2. **Evolución Continua (Sprints 1 a $N$):** La *Definition of Done (DoD)* exige que cualquier nuevo subsistema (endpoints nuevos, pantallas añadidas, secretos en `SecureStorage`, scripts de seeds o flujos E2E) sea registrado de inmediato en la sección correspondiente del README.
+3. **Sellado Canónico (Sprint de Hardening / Release):** Se congela el documento con métricas reales de cobertura, lista de credenciales de prueba del backend, topología de red local y guía paso a paso de empaquetado para producción.
+
+### 12.2 Estructura Mandatoria No Negociable (Los 8 Pilares del README)
+Todo archivo `README.md` debe contener exactamente los siguientes 8 bloques estructurados:
+1. **Hero & Badges:** Título oficial del producto, breve descripción del dolor operativo que resuelve, y badges de estado: CI/CD, versión de framework (.NET MAUI 9 / Angular 21+), plataformas objetivo (Android, iOS, Windows) y suite de pruebas unitarias.
+2. **Visión Operativa y Personas de Campo:** Resumen ágil del PRD destacando los 4 pilares operativos de la aplicación y a quién beneficia en la operación diaria.
+3. **Arquitectura y Stack Tecnológico:** Diagrama conceptual en sintaxis Mermaid (Clean Architecture en 3 Capas o C4 Model) y desglose de paquetes y librerías clave utilizadas.
+4. **Topología de Red y Conectividad Local/Remota:** Guía de conexión para desarrolladores y testers sobre cómo la app móvil se conecta al backend local (Emulador Android `10.0.2.2`, Celular Físico USB mediante `adb reverse`, Celular por Wi-Fi LAN en `0.0.0.0` y Túneles ngrok/Cloudflare), detallando políticas de tráfico claro HTTP y puertos.
+5. **Credenciales y Datos de Prueba Pre-sembrados:** Tabla de usuarios de prueba generados por el script `seed.ts` del backend (Email, Contraseña, Rol de Acceso) y códigos de guía / tracking de prueba para escaneo o búsqueda manual.
+6. **Guía de Instalación, Compilación y Testing:** Comandos exactos de CLI para restaurar dependencias, compilar en modo Debug, verificar formato con Roslyn (`dotnet format`) y ejecutar la suite unitaria headless (`dotnet test`).
+7. **Automatización de Pruebas E2E (Maestro):** Instrucciones detalladas para ejecutar los flujos de pruebas de interfaz declarativas con Maestro CLI (`maestro test .maestro/`), incluyendo atajos de teclado y reseteo de estado.
+8. **Empaquetado de Producción & CI/CD:** Comandos para compilar y firmar el APK/AAB en modo Release con optimizaciones R8 y AOT profiling, indicando la ruta del binario generado y el flujo de integración continua en GitHub Actions.
+
+---
+
+## 🌐 13. Protocolo de Topología de Red y Conectividad Local/Remota en Clientes Móviles
+
+En arquitecturas cliente-servidor polyrepo (donde el backend ya existe o se ejecuta en una máquina de desarrollo local), **está terminantemente prohibido asumir ciegamente que `localhost` funciona en dispositivos móviles**.
+
+### 13.1 Matriz Mandatoria de Conectividad para Desarrollo Móvil
+El código del cliente móvil y su archivo de constantes de red (`ApiConstants`) deben implementar la siguiente matriz de contingencia:
+
+| Dispositivo de Prueba | Dirección IP / URL Base | Requisito de Configuración en el Host |
+| :--- | :--- | :--- |
+| **Emulador Android (AVD)** | `http://10.0.2.2:<puerto>/api/` | Puerto de la API escuchando en el host. El emulador traduce `10.0.2.2` al loopback de Windows. |
+| **Dispositivo Físico Android (Cable USB)** | `http://localhost:<puerto>/api/` | Depuración USB activa. Ejecutar en terminal: `adb reverse tcp:<puerto> tcp:<puerto>` para reenviar el puerto del teléfono a la PC. |
+| **Dispositivo Físico Android (Misma Red Wi-Fi)** | `http://<IP_LAN_HOST>:<puerto>/api/` | El backend debe escuchar en `0.0.0.0` (todas las interfaces) y el Firewall de Windows debe permitir tráfico entrante en `<puerto>`. |
+| **Dispositivo Remoto o Datos Móviles (4G/5G)** | `https://<hash>.ngrok-free.app/api/` | Ejecutar túnel: `ngrok http <puerto>`. Permite probar en patio exterior sin compartir la misma red Wi-Fi. |
+| **Escritorio Windows (`net9.0-windows`)** | `http://localhost:<puerto>/api/` | Conexión directa en loopback nativo. |
+
+### 13.2 Regla del Trailing Slash en HttpClient (.NET / Angular)
+En conformidad con RFC 3986, toda URL base configurada en clientes HTTP (`HttpClient.BaseAddress`) **DEBE terminar obligatoriamente con una barra inclinada (`/`)** (ej. `http://10.0.2.2:3000/api/`). Si se omite la barra final, cualquier llamada relativa como `PostAsync("auth/login")` truncará el segmento `/api` resolviendo erróneamente a `http://10.0.2.2:3000/auth/login`.
+
+### 13.3 Selector Dinámico de Servidor en Caliente (Runtime BaseUrl Override)
+El cliente móvil debe incluir un mecanismo en la capa de presentación (ej. botón o enlace de configuración en la pantalla de inicio de sesión) que permita al tester o desarrollador modificar la URL base del servidor en tiempo de ejecución mediante almacenamiento local (`Preferences`), persistiendo el valor entre sesiones para no requerir recompilación ante cambios de IP en redes locales.
