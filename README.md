@@ -2,7 +2,7 @@
 
 > **Field Operations Companion** — Aplicación móvil de campo para inspectores de patio, choferes y agentes aduanales en terminales logísticas transfronterizas (México – EE. UU.).
 
-[![CI/CD Pipeline](https://github.com/cargopulse/cargopulse-mobile/actions/workflows/mobile-ci.yml/badge.svg)](.github/workflows/mobile-ci.yml)
+[![CI/CD Pipeline](https://github.com/kftorresdev/CargoPulse-mobile/actions/workflows/mobile-ci.yml/badge.svg)](https://github.com/kftorresdev/CargoPulse-mobile/actions/workflows/mobile-ci.yml)
 ![Release](https://img.shields.io/badge/Release-v1.0.0-blue?logo=github)
 ![.NET MAUI](https://img.shields.io/badge/.NET%20MAUI-9.0.0-512BD4?logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-13.0-239120?logo=csharp&logoColor=white)
