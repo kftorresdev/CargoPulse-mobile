@@ -1,0 +1,14 @@
+# ==============================================================================
+# CargoPulse Mobile - Maestro E2E Configuration
+# ==============================================================================
+# Application Identifier configured in src/CargoPulse.Mobile.csproj
+appId: com.cargopulse.mobile
+
+# Default Flow execution settings and execution tags
+tags:
+  - e2e
+  - regression
+  - mobile-ops
+
+# Flow execution timeout in milliseconds
+executionTimeout: 120000

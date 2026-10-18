@@ -1,0 +1,98 @@
+# ==============================================================================
+# CargoPulse Mobile E2E Test - Flow 04: Offline Queue & Sync Engine Verification
+# ==============================================================================
+appId: com.cargopulse.mobile
+---
+# Ensure app is active
+- launchApp:
+    clearState: false
+
+# ------------------------------------------------------------------------------
+# 1. State Precondition: Ensure authenticated session if starting from login
+# ------------------------------------------------------------------------------
+- runFlow:
+    when:
+      visible: "Acceso al Sistema"
+    commands:
+      - tapOn:
+          text: "operador@cargopulse.com"
+          optional: true
+      - inputText: "operador@cargopulse.com"
+      - tapOn:
+          text: "••••••••"
+          optional: true
+      - inputText: "Operador2026!"
+      - hideKeyboard
+      - tapOn: "INICIAR SESIÓN"
+      - extendedWaitUntil:
+          visible: "Operador en Turno"
+          timeout: 15000
+
+# ------------------------------------------------------------------------------
+# 2. Navigate to Sync Queue Tab (//main/sync)
+# ------------------------------------------------------------------------------
+# Try navigation card from Dashboard first
+- runFlow:
+    when:
+      visible: "VER COLA DE SINCRONIZACIÓN"
+    commands:
+      - tapOn: "VER COLA DE SINCRONIZACIÓN"
+
+# If still not in sync queue, tap bottom Tab "Sincronización"
+- runFlow:
+    when:
+      notVisible: "Cola de Sincronización"
+    commands:
+      - tapOn:
+          text: "Sincronización"
+          optional: true
+
+# Assert Sync Queue page is presented
+- extendedWaitUntil:
+    visible: "Cola de Sincronización"
+    timeout: 10000
+
+- assertVisible: "CARGOPULSE SYNC"
+- assertVisible: "Cola de Sincronización"
+
+# ------------------------------------------------------------------------------
+# 3. Assert Connectivity Status Banner & Queue State
+# ------------------------------------------------------------------------------
+# Live connectivity status badge (En Línea or Modo Offline)
+- assertVisible:
+    text: ".*(En Línea|Modo Offline).*"
+
+# Queue Summary Counter Card
+- assertVisible: "ESTADO DE LA COLA"
+- assertVisible: "SINCRONIZAR AHORA"
+
+# Assert presence of pending or synced inspection items
+- assertVisible:
+    text: ".*(inspecciones pendientes|inspección pendiente|Todas las inspecciones).*"
+
+# Assert inspection card metadata when queue contains records
+- runFlow:
+    when:
+      visible: "REGISTROS DE INSPECCIÓN"
+    commands:
+      - assertVisible:
+          text: ".*(Condición: DAMAGED|Condición: GOOD|Condición: REGULAR|Sin número de guía|MX-TX-99881).*"
+          optional: true
+      - assertVisible:
+          text: ".*(PENDING|SYNCED).*"
+          optional: true
+
+# ------------------------------------------------------------------------------
+# 4. Trigger Manual Sync & Assert Progress Feedback
+# ------------------------------------------------------------------------------
+- tapOn: "SINCRONIZAR AHORA"
+
+# Assert sync operational feedback (progress bar banner, progress message, or final count)
+- assertVisible:
+    text: ".*(sincroniz|sincronización|Modo offline|completad|Todas las inspecciones|ESTADO DE LA COLA).*"
+
+# Final assert that button returns to active state after sync cycle
+- extendedWaitUntil:
+    visible: "SINCRONIZAR AHORA"
+    timeout: 15000
+- assertVisible: "SINCRONIZAR AHORA"

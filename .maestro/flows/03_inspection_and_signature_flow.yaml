@@ -1,0 +1,193 @@
+# ==============================================================================
+# CargoPulse Mobile E2E Test - Flow 03: Inspection, Damage Logging & Signature
+# ==============================================================================
+appId: com.cargopulse.mobile
+---
+# Ensure app is active
+- launchApp:
+    clearState: false
+
+# ------------------------------------------------------------------------------
+# 1. State Precondition: Navigate to Shipment Detail if not already there
+# ------------------------------------------------------------------------------
+# If sitting on Login screen, authenticate first
+- runFlow:
+    when:
+      visible: "Acceso al Sistema"
+    commands:
+      - tapOn:
+          text: "operador@cargopulse.com"
+          optional: true
+      - inputText: "operador@cargopulse.com"
+      - tapOn:
+          text: "••••••••"
+          optional: true
+      - inputText: "Operador2026!"
+      - hideKeyboard
+      - tapOn: "INICIAR SESIÓN"
+      - extendedWaitUntil:
+          visible: "Operador en Turno"
+          timeout: 15000
+
+# If sitting on Dashboard, navigate through scanner/manual search
+- runFlow:
+    when:
+      visible: "ESCANEAR AHORA"
+    commands:
+      - tapOn: "ESCANEAR AHORA"
+      - extendedWaitUntil:
+          visible: "⌨ Búsqueda Manual"
+          timeout: 8000
+      - tapOn:
+          text: ".*Búsqueda Manual.*"
+      - extendedWaitUntil:
+          visible: "BÚSQUEDA MANUAL"
+          timeout: 8000
+      - tapOn:
+          text: "Ej. CP-789012"
+          optional: true
+      - inputText: "MX-TX-99881"
+      - hideKeyboard
+      - tapOn: "Buscar Embarque"
+      - extendedWaitUntil:
+          visible: "DETALLE DEL EMBARQUE"
+          timeout: 15000
+
+# ------------------------------------------------------------------------------
+# 2. Enter Inspection Wizard
+# ------------------------------------------------------------------------------
+- runFlow:
+    when:
+      visible: "DETALLE DEL EMBARQUE"
+    commands:
+      - scrollUntilVisible:
+          element: ".*INICIAR INSPECCIÓN.*"
+          direction: DOWN
+      - tapOn:
+          text: ".*INICIAR INSPECCIÓN.*"
+
+- extendedWaitUntil:
+    visible: "INSPECCIÓN FÍSICA DE UNIDAD"
+    timeout: 15000
+
+- assertVisible: "INSPECCIÓN FÍSICA DE UNIDAD"
+- assertVisible: "DATOS DEL EMBARQUE"
+- assertVisible: "CONTROL DE SELLO FISCAL"
+
+# ------------------------------------------------------------------------------
+# 3. Fill Physical Seal Number & Assert Mismatch Indicator Behavior
+# ------------------------------------------------------------------------------
+# Scroll to seal verification section
+- scrollUntilVisible:
+    element: "Número de Sello Físico Verificado (*)"
+    direction: DOWN
+
+# Tap physical seal input and enter deliberate mismatch seal
+- tapOn:
+    text: "Ingrese o escanee el número de sello"
+    optional: true
+- tapOn:
+    text: "Número de Sello Físico Verificado (*)"
+    optional: true
+
+- inputText: "SEAL-MISMATCH-99881-DISCREPANT"
+- hideKeyboard
+
+# Assert immediate visual feedback on seal discrepancy
+- extendedWaitUntil:
+    visible: "¡DISCREPANCIA DE SELLO FISCAL!"
+    timeout: 5000
+
+- assertVisible: "¡DISCREPANCIA DE SELLO FISCAL!"
+- assertVisible: "El sello físico verificado difiere del sello declarado oficialmente."
+
+# ------------------------------------------------------------------------------
+# 4. Toggle Condition to DAMAGED & Enter Damage Description
+# ------------------------------------------------------------------------------
+- scrollUntilVisible:
+    element: "ESTADO FÍSICO DEL CONTENEDOR"
+    direction: DOWN
+
+- assertVisible: "ESTADO FÍSICO DEL CONTENEDOR"
+
+# Tap '✕ DAÑADO' condition button
+- tapOn:
+    text: ".*DAÑADO.*"
+
+# Assert damage description field dynamically expands
+- extendedWaitUntil:
+    visible: "DESCRIPCIÓN DE DAÑOS O ANOMALÍAS"
+    timeout: 5000
+
+- assertVisible: "DESCRIPCIÓN DE DAÑOS O ANOMALÍAS"
+
+# Enter detailed damage description
+- tapOn:
+    text: "Especifique detalles técnicos del daño detectado..."
+    optional: true
+- tapOn:
+    text: "DESCRIPCIÓN DE DAÑOS O ANOMALÍAS"
+    optional: true
+
+- inputText: "Fisura estructural en mampara lateral derecha y alteración en perno de bisagra."
+- hideKeyboard
+
+# ------------------------------------------------------------------------------
+# 5. Enter Signer Name & Execute Digital Signature on DrawingPad
+# ------------------------------------------------------------------------------
+- scrollUntilVisible:
+    element: "FIRMA DIGITAL DE CONFORMIDAD"
+    direction: DOWN
+
+- assertVisible: "FIRMA DIGITAL DE CONFORMIDAD"
+
+# Enter signer name ('Juan Chofer')
+- tapOn:
+    text: "Ej. Roberto Morales Sánchez"
+    optional: true
+- tapOn:
+    text: "Nombre del Transportista o Receptor (*)"
+    optional: true
+
+- inputText: "Juan Chofer"
+- hideKeyboard
+
+# Assert initial signature mandatory warning
+- assertVisible: "⚠ Firma táctil requerida antes de guardar"
+
+# Draw touch signature gesture strokes across DrawingPad canvas
+- swipe:
+    start: 30%, 75%
+    end: 70%, 75%
+
+- swipe:
+    start: 40%, 72%
+    end: 60%, 78%
+
+# Confirm signature to render base64 encoding
+- tapOn:
+    text: ".*Confirmar Firma.*"
+
+# Assert signature validation pill updates to success
+- extendedWaitUntil:
+    visible: "✓ Firma digital registrada correctamente"
+    timeout: 5000
+
+- assertVisible: "✓ Firma digital registrada correctamente"
+
+# ------------------------------------------------------------------------------
+# 6. Submit Inspection & Assert Navigation Back to Dashboard
+# ------------------------------------------------------------------------------
+- scrollUntilVisible:
+    element: "GUARDAR INSPECCIÓN"
+    direction: DOWN
+
+- tapOn: "GUARDAR INSPECCIÓN"
+
+# Assert return to Dashboard (or Queue) with persistent pending badge
+- extendedWaitUntil:
+    visible: "Operador en Turno"
+    timeout: 15000
+
+- assertVisible: "CARGOPULSE"
+- assertVisible: "ACCIONES OPERATIVAS"

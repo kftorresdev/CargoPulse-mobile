@@ -61,4 +61,33 @@ public class MediaServiceTests
         // Assert
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task CapturePhotoAsync_WhenPhotoStreamEmpty_ReturnsNull()
+    {
+        // Arrange
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            await File.WriteAllBytesAsync(tempFile, Array.Empty<byte>());
+            var fileResult = new FileResult(tempFile);
+            _mockMediaPicker
+                .Setup(m => m.CapturePhotoAsync(It.IsAny<MediaPickerOptions?>()))
+                .ReturnsAsync(fileResult);
+
+            // Act
+            var result = await _service.CapturePhotoAsync();
+
+            // Assert
+            result.Should().BeNull();
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
 }
+
