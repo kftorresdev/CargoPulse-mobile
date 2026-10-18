@@ -10,6 +10,7 @@
 > 3. **Zero-Code Policy:** No se creará ningún archivo de código fuente, componente, servicio o migración hasta que los 6 documentos estén aprobados en `/docs/specs/`.
 > 4. **Anti-Frankenstein Protocol:** Todo código generado debe apegarse estrictamente a la arquitectura de 3 capas, las reglas de Clean Code y las convenciones de Git de este documento.
 > 5. **Protocolo de Subagentes Mandatorio (Multi-Agent Swarm):** Si el análisis de un sprint, épica o actividad técnica determina que la envergadura o complejidad es considerable, el Asistente TIENE ESTRICTAMENTE PROHIBIDO intentar resolverlo en un único hilo aislado. Debe estructurar y desplegar un enjambre de subagentes especializados, sin límite artificial en la cantidad, para mitigar errores humanos o de contexto.
+> 6. **Política de Idioma en Comentarios de Código (Comentarios 100% en Español):** Todo comentario explicativo en el código fuente (`//`, `/* */`, `///`, `/** */`) DEBE redactarse obligatoriamente en **español**. Queda prohibido escribir comentarios en inglés.
 
 ---
 
@@ -154,6 +155,11 @@ function processOrder(order: Order): void {
 - **TypeScript:** Prohibido el uso de `any`. Configuración `"strict": true` mandatoria.
 - **C#:** Prohibido el uso indiscriminado de `dynamic` u `object` no casteado.
 - **Kotlin:** Uso prioritario de `val` inmutable y control exhaustivo de nulos.
+
+### 3.10 Idioma Mandatorio en Comentarios de Código (Spanish Only Comments Policy)
+- **Regla Estricta:** Todo comentario explicativo dentro del código fuente (`//`, `/* */`, `///` para XMLDoc en C#, o `/** */` para JSDoc/TSDoc en TypeScript/JavaScript) **DEBE estar redactado estrictamente en ESPAÑOL**.
+- **Prohibición de Comentarios en Inglés:** Queda terminantemente prohibido generar comentarios en inglés (ej. `// Handle error`, `// Fallback location`, `// Fetch data from API`). Todo comentario debe estar en español claro, técnico y conciso (ej. `// Manejo de error controlado`, `// Ubicación por defecto ante fallo de GPS`, `// Consulta de datos al API de embarques`).
+- **Nombres de Símbolos Técnicos:** Los nombres de clases, métodos, variables e interfaces continúan rigiéndose por las convenciones técnicas del lenguaje (inglés técnico para C#/TypeScript: `GetShipmentByIdAsync`, `CalculateTotal`), pero **la explicación humana, comentarios de cabecera y notas inline son siempre 100% en español**.
 
 ---
 
