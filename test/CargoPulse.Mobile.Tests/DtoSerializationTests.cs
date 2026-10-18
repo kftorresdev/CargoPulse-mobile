@@ -59,6 +59,94 @@ public class DtoSerializationTests
     }
 
     [Fact]
+    public void ShipmentListResponseDto_WithPaginationMeta_DeserializesProperly()
+    {
+        // Arrange
+        var json = """
+        {
+            "success": true,
+            "data": {
+                "items": [
+                    {
+                        "id": "ship-1",
+                        "trackingNumber": "CP-789012",
+                        "origin": "Monterrey, MX",
+                        "destination": "Laredo, US",
+                        "currentStatus": "CUSTOMS_BORDER",
+                        "carrierName": "Transportes Frontera",
+                        "eta": "2026-10-20T10:00:00Z",
+                        "actualDelivery": null,
+                        "alertsCount": 2,
+                        "stages": [],
+                        "alerts": []
+                    }
+                ],
+                "meta": {
+                    "total": 1,
+                    "page": 1,
+                    "limit": 10,
+                    "totalPages": 1
+                }
+            },
+            "timestamp": "2026-10-17T20:00:00Z"
+        }
+        """;
+
+        // Act
+        var result = JsonSerializer.Deserialize<ShipmentListResponseDto>(json, JsonOptions);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        result.Data.Items.Should().HaveCount(1);
+        result.Data.Items[0].TrackingNumber.Should().Be("CP-789012");
+        result.Data.Items[0].AlertsCount.Should().Be(2);
+        result.Data.Meta.Total.Should().Be(1);
+    }
+
+    [Fact]
+    public void NoteTreeResponseDto_DeserializesProperly()
+    {
+        // Arrange
+        var json = """
+        {
+            "success": true,
+            "data": [
+                {
+                    "id": "note-1",
+                    "shipmentId": "ship-1",
+                    "authorId": "user-1",
+                    "author": {
+                        "id": "user-1",
+                        "firstName": "Fernando",
+                        "lastName": "Torres",
+                        "email": "fer@cargopulse.com",
+                        "role": "LOGISTICS_OPERATOR"
+                    },
+                    "parentId": null,
+                    "content": "Unidad arribó a patio.",
+                    "attachmentUrl": null,
+                    "replies": [],
+                    "createdAt": "2026-10-17T20:00:00Z",
+                    "updatedAt": "2026-10-17T20:00:00Z"
+                }
+            ],
+            "timestamp": "2026-10-17T20:00:00Z"
+        }
+        """;
+
+        // Act
+        var result = JsonSerializer.Deserialize<NoteTreeResponseDto>(json, JsonOptions);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Success.Should().BeTrue();
+        result.Data.Should().HaveCount(1);
+        result.Data[0].Content.Should().Be("Unidad arribó a patio.");
+        result.Data[0].Author.FirstName.Should().Be("Fernando");
+    }
+
+    [Fact]
     public void CreateInspectionRequestDto_SerializesAndRoundTripsWithoutErrors()
     {
         // Arrange

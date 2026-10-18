@@ -28,5 +28,16 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSCameraUsageDescription</key>
+	<string>CargoPulse requires camera access to scan shipment barcodes and QR codes and capture damage evidence.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CargoPulse requires access to your photo library to attach inspection evidence.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CargoPulse requires permission to save inspection photos to your photo library.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

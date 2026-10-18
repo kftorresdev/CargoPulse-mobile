@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CargoPulse.Mobile.Views.MainPage"
+             Title="CargoPulse Mobile">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30"
+            Spacing="20"
+            VerticalOptions="Center">
+
+            <Image
+                Source="dotnet_bot.png"
+                HeightRequest="160"
+                Aspect="AspectFit"
+                SemanticProperties.Description="CargoPulse Mobile App" />
+
+            <Label
+                Text="CargoPulse Mobile"
+                FontSize="26"
+                FontAttributes="Bold"
+                HorizontalTextAlignment="Center"
+                TextColor="#0F172A" />
+
+            <Label
+                Text="Field Operations Companion"
+                FontSize="16"
+                HorizontalTextAlignment="Center"
+                TextColor="#64748B" />
+
+            <Border Stroke="#E2E8F0" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="16" BackgroundColor="#F8FAFC">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Sistema Inicializado" FontAttributes="Bold" TextColor="#16A34A" />
+                    <Label Text="Sprint 0 Scaffolding verificado exitosamente conforme a la Constitución de Ingeniería." FontSize="13" TextColor="#475569" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

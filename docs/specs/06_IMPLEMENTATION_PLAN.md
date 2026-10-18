@@ -13,7 +13,14 @@
 
 ## 1. Metodología de Ejecución Dinámica
 
-Conforme a la Sección 10 de la Constitución, el plan de trabajo se estructura en un ciclo de vida ágil dinámico dividido en **Sprint 0 a Sprint 5**, diseñado para garantizar la entrega de valor funcional continuo con base en el estándar **Polyrepo** y respetando rigurosamente la regla **Backend-First** mediante la API NestJS ya operativa.
+Conforme a la Sección 10 y Sección 11 de la Constitución, el plan de trabajo se estructura en un ciclo de vida ágil dinámico dividido en **Sprint 0 a Sprint 5**, diseñado para garantizar la entrega de valor funcional continuo con base en el estándar **Polyrepo** y respetando rigurosamente la regla **Backend-First** mediante la API NestJS ya operativa.
+
+### 1.1 Gobernanza de Ejecución con Enjambre de Subagentes (Multi-Agent Swarm Standard)
+Para prevenir la fatiga cognitiva, degradación de contexto y errores por sobrecarga en un único agente, se establece como regla inquebrantable para cada Sprint:
+- **Evaluación de Envergadura Mandatoria:** Al inicio de cada Sprint, el Agente Principal evaluará la complejidad del alcance.
+- **Despliegue Elástico Sin Límites:** Si el Sprint abarca múltiples capas (UI, DB local, API client, QA), se desplegará el número necesario de subagentes especializados (2, 4, 6 o más) en paralelo o secuencia.
+- **Especialización por Capa:** Subagentes dedicados a Data/SQLite, Network/Sync, UI XAML/Hardware, QA Unit Testing y Auditoría de Código Limpio.
+- **Orquestación Centralizada:** El Agente Principal actúa como Arquitecto Técnico Líder, coordinando la integración armónica, compilación y certificación de la Definition of Done (DoD).
 
 ---
 

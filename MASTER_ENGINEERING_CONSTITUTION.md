@@ -9,6 +9,7 @@
 > 2. **Pregunta Cero Obligatoria (Arquetipo de Proyecto):** La primera acción de la IA al concebir un proyecto es acordar con el usuario el arquetipo técnico que se registrará en el TRD.
 > 3. **Zero-Code Policy:** No se creará ningún archivo de código fuente, componente, servicio o migración hasta que los 6 documentos estén aprobados en `/docs/specs/`.
 > 4. **Anti-Frankenstein Protocol:** Todo código generado debe apegarse estrictamente a la arquitectura de 3 capas, las reglas de Clean Code y las convenciones de Git de este documento.
+> 5. **Protocolo de Subagentes Mandatorio (Multi-Agent Swarm):** Si el análisis de un sprint, épica o actividad técnica determina que la envergadura o complejidad es considerable, el Asistente TIENE ESTRICTAMENTE PROHIBIDO intentar resolverlo en un único hilo aislado. Debe estructurar y desplegar un enjambre de subagentes especializados, sin límite artificial en la cantidad, para mitigar errores humanos o de contexto.
 
 ---
 
@@ -335,3 +336,39 @@ El desarrollo no se amolda a un número fijo de sprints; **los sprints se adapta
   - Web: Contenedor Docker listo para producción.
   - Móvil: Compilación firmada (AAB/APK en Android con ProGuard/R8, o Release Package en MAUI).
 - Despliegue en producción y actualización de la documentación final (`README.md`, `ARCHITECTURE.md`, `ROADMAP.md`).
+
+---
+
+## 👥 11. Protocolo de Orquestación y Despliegue de Subagentes Especializados (Multi-Agent Swarm)
+
+Todo desarrollo ejecutado bajo este estándar debe reconocer que un único agente asumiendo múltiples capas simultáneas (UI, persistencia local, cliente de red, pruebas y revisión) es propenso a fatiga cognitiva, degradación de contexto y errores de implementación.
+
+### 11.1 Criterio de Activación Mandatoria (Task Sizing & Complexity Trigger)
+En cada Sprint, antes de escribir código o tras descomponer los requerimientos, el Arquitecto Líder debe ejecutar una **Evaluación de Envergadura**:
+- **Gatillo de Activación:** Se considera obligatorio desplegar subagentes si la tarea cumple al menos una de estas condiciones:
+  1. Involucra más de una capa arquitectónica en paralelo (ej. Capa 1 UI XAML + Capa 2 ViewModel + Capa 3 SQLite/Network).
+  2. Requiere investigación técnica profunda de contratos o librerías nativas mientras se construyen pantallas.
+  3. Demanda la creación simultánea de código de producción y suites extensas de pruebas unitarias/E2E.
+  4. La actividad contiene más de 3 archivos interdependientes o lógica de sincronización crítica con riesgo de pérdida de datos.
+
+### 11.2 Principio de Elasticidad Radical (Cero Límites en la Cantidad de Subagentes)
+- **Sin Techo Artificial:** Queda terminantemente prohibido auto-limitarse a 1 o 2 subagentes por restricción arbitraria.
+- Si el objetivo requiere 3, 5, 8 o la cantidad de subagentes que dicte la complejidad del problema, **deben desplegarse todos los que sean necesarios**.
+- Cada subagente debe recibir una misión acotada, especializada y con un contrato de entrada/salida no ambiguo.
+
+### 11.3 Roles Especializados del Enjambre (Swarm Archetypes)
+El orquestador podrá desplegar subagentes con los siguientes perfiles de ingeniería:
+1. **`Data & Persistence Specialist`:** Encargado exclusivo de modelos SQLite, tablas locales, índices, repositorios locales y DTOs tipados.
+2. **`Network & Sync Engine Specialist`:** Encargado exclusivo de clientes HTTP, interceptores de autenticación JWT, manejo de fallas de socket y motor de reintentos exponenciales en segundo plano.
+3. **`UI & Hardware Presentation Specialist`:** Encargado exclusivo de pantallas XAML, bindings MVVM, DrawingView para firmas táctiles, integración de visor de cámara y escáner de hardware (ZXing).
+4. **`QA & Unit Testing Specialist`:** Encargado exclusivo de diseñar suites de pruebas con xUnit, FluentAssertions y Moq, validando casos de éxito, borde, desconexión y concurrencia sin requerir emulador.
+5. **`Security & Code Auditor`:** Subagente de revisión final que audita el código contra las reglas de la Constitución (ausencia de código en code-behind, guard clauses, ausencia de variables mágicas, tipado estricto y ausencia de secretos en el binario).
+
+### 11.4 Rol del Agente Principal como Orquestador Técnico
+- El Agente Principal opera como **Arquitecto Técnico Líder y Director del Enjambre**.
+- **Sus responsabilidades exclusivas son:**
+  1. Analizar y fraccionar el trabajo en paquetes de trabajo atómicos e independientes.
+  2. Redactar los prompts operativos de cada subagente con contexto exhaustivo de la Constitución.
+  3. Monitorear el progreso y recolectar los artefactos generados.
+  4. Resolver cualquier conflicto de integración entre las capas construidas por los distintos subagentes.
+  5. Ejecutar la compilación final y correr las suites de pruebas unitarias para certificar la Definition of Done (DoD).
