@@ -13,7 +13,7 @@
 
 ## 1. Integración con el Backend Existente
 
-El backend de CargoPulse ya se encuentra implementado en `c:\Users\Fer\CargoPulse\apps\api` (NestJS 12 + Prisma ORM + PostgreSQL 16 con modo contingencia en memoria). 
+El backend de CargoPulse ya se encuentra implementado en el repositorio [CargoPulse](https://github.com/kftorresdev/CargoPulse) (`apps/api`), construido sobre NestJS 12 + Prisma ORM + PostgreSQL 16 con modo de contingencia en memoria. 
 
 En esta especificación, formalizamos:
 1. Las entidades existentes que la app móvil consulta (`User`, `Shipment`, `FreightStage`, `Alert`, `Note`).

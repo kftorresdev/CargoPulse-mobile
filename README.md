@@ -83,7 +83,7 @@ graph TD
 
 ## 🌐 3. Topología de Red y Conexión en Desarrollo Local
 
-La aplicación móvil es cliente del backend existente en **NestJS** (`c:\Users\Fer\CargoPulse\apps\api`). Dado que la aplicación corre en entornos aislados (emulador o dispositivo físico), **nunca utilices `localhost` a ciegas en Android**.
+La aplicación móvil es cliente del backend en **NestJS** alojado en el repositorio [CargoPulse](https://github.com/kftorresdev/CargoPulse) (`apps/api`). Dado que la aplicación corre en entornos aislados (emulador o dispositivo físico), **nunca utilices `localhost` a ciegas en Android**.
 
 ### Matriz de Conectividad para Pruebas
 
@@ -128,9 +128,11 @@ El backend existente incluye el script `seed.ts` (`npm run seed` en `CargoPulse/
 * Android SDK Platform 34 o 35 y Android Command-Line Tools (`adb`).
 
 ### 1. Iniciar el Backend NestJS
-En una terminal independiente, levanta el backend existente:
+En una terminal independiente, clona e inicia el backend existente:
 ```powershell
-cd c:\Users\Fer\CargoPulse\apps\api
+# Clonar y acceder a la API de CargoPulse
+git clone https://github.com/kftorresdev/CargoPulse.git
+cd CargoPulse/apps/api
 npm install
 npm run seed     # Opcional: si deseas resetear usuarios y embarques de prueba
 npm run start:dev
@@ -139,7 +141,7 @@ npm run start:dev
 
 ### 2. Restaurar y Validar Formato en Mobile
 ```powershell
-cd c:\Users\Fer\CargoPulse-mobile
+# En la raíz de este repositorio (CargoPulse-mobile):
 dotnet restore CargoPulse.Mobile.sln
 dotnet format --verify-no-changes --verbosity normal
 ```

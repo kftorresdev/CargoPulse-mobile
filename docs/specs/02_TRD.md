@@ -31,9 +31,9 @@ Conforme a la Sección 1.2 y la Sección 5.3 de la Constitución de Ingeniería,
 Conforme a la Sección 2.1 de la Constitución para stacks heterogéneos (C# en móvil vs. TypeScript en Backend/Web), se confirma la estructura **Polyrepo**:
 
 ```text
-Entorno Local del Desarrollador:
-├── c:\Users\Fer\CargoPulse-mobile\      # [Repositorio Actual] Cliente Móvil .NET MAUI 9 (C#)
-└── c:\Users\Fer\CargoPulse\             # Monorepo Web & Backend (TypeScript)
+Estructura de Repositorios Oficiales en GitHub:
+├── CargoPulse-mobile/                   # [Repositorio Actual] Cliente Móvil .NET MAUI 9 (C#)
+└── CargoPulse/                          # Monorepo Web & Backend (TypeScript)
     ├── apps/
     │   ├── api/                         # Backend NestJS 12 + Prisma + PostgreSQL 16 (EXISTENTE)
     │   └── web/                         # Frontend Web Angular 21 Standalone (EXISTENTE)
@@ -41,7 +41,7 @@ Entorno Local del Desarrollador:
 ```
 
 ### 2.2 Integración con Backend Existente (Cero Invención de Datos)
-El backend de CargoPulse ya está desarrollado y operativo en `c:\Users\Fer\CargoPulse\apps\api`.
+El backend de CargoPulse ya está desarrollado y operativo en el repositorio [CargoPulse](https://github.com/kftorresdev/CargoPulse) (`apps/api`).
 - **Estrategia de Comunicación:** Consumo de contratos RESTful JSON mediante `HttpClient` en C#.
 - **Endpoints Existentes:**
   - `POST /api/auth/login`: Autenticación y emisión de JWT Bearer Token.

@@ -429,6 +429,14 @@ Todo archivo `README.md` debe contener exactamente los siguientes 8 bloques estr
 7. **Automatización de Pruebas E2E (Maestro):** Instrucciones detalladas para ejecutar los flujos de pruebas de interfaz declarativas con Maestro CLI (`maestro test .maestro/`), incluyendo atajos de teclado y reseteo de estado.
 8. **Empaquetado de Producción & CI/CD:** Comandos para compilar y firmar el APK/AAB en modo Release con optimizaciones R8 y AOT profiling, indicando la ruta del binario generado y el flujo de integración continua en GitHub Actions.
 
+### 12.3 Prohibición Absoluta de Rutas del Sistema de Archivos Local (No Host Machine Paths Policy)
+- **Regla Estricta y No Negociable:** Queda terminantemente prohibido incluir en el archivo `README.md` (y en cualquier documento de arquitectura o especificación técnica) rutas absolutas del sistema de archivos local de la estación de trabajo del desarrollador (ej. `c:\Users\Juan\...`, `D:\Proyectos\...`, `/home/usuario/...`, `/Users/admin/...`).
+- **Impacto y Vulnerabilidad:** Filtrar rutas absolutas de una computadora personal expone nombres de usuario del sistema operativo, estructura privada de carpetas y destruye la portabilidad técnica del proyecto para cualquier otro ingeniero, tester o evaluador que clone el repositorio desde GitHub.
+- **Formato Canónico Obligatorio:**
+  1. *Para dependencias o repositorios hermanos (Polyrepo):* Usar siempre el hipervínculo oficial del repositorio en GitHub (ej. `[CargoPulse](https://github.com/kftorresdev/CargoPulse)`).
+  2. *Para instrucciones de terminal (`cd` / compilación):* Usar comandos de clonado con Git y rutas relativas canónicas de proyecto (ej. `git clone https://github.com/... && cd CargoPulse/apps/api`), jamás `cd c:\Users\...`.
+  3. *Para referencias dentro del propio repositorio:* Usar rutas relativas limpias desde la raíz del proyecto (`src/`, `docs/specs/`, `test/`).
+
 ---
 
 ## 🌐 13. Protocolo de Topología de Red y Conectividad Local/Remota en Clientes Móviles
