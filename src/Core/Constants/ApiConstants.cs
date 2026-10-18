@@ -17,6 +17,8 @@ public static class ApiConstants
     public const string UserRoleKey = "cargopulse_user_role";
     public const string UserIdKey = "cargopulse_user_id";
     public const string UserEmailKey = "cargopulse_user_email";
+    public const string UserFirstNameKey = "cargopulse_user_first_name";
+    public const string UserLastNameKey = "cargopulse_user_last_name";
     public const string UserNameKey = "cargopulse_user_name";
 
     // Endpoints

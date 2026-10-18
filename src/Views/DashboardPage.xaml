@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             x:Class="CargoPulse.Mobile.Views.DashboardPage"
+             x:DataType="viewModels:DashboardViewModel"
+             BackgroundColor="#F8FAFC"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Industrial Header (Navy 900 #0F172A) -->
+        <Border
+            Grid.Row="0"
+            BackgroundColor="#0F172A"
+            StrokeThickness="0"
+            Padding="20,16,20,20">
+            <VerticalStackLayout Spacing="12">
+                <!-- Top Brand Bar & Date -->
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                        <Border
+                            Stroke="#0284C7"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            BackgroundColor="#1E293B"
+                            WidthRequest="28"
+                            HeightRequest="28"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                            <Label Text="⚡" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <Label
+                            Text="CARGOPULSE"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="White"
+                            CharacterSpacing="1.5"
+                            VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label
+                        Grid.Column="1"
+                        Text="{Binding CurrentDate}"
+                        FontSize="12"
+                        TextColor="#94A3B8"
+                        VerticalOptions="Center" />
+                </Grid>
+
+                <!-- Operator Info & Role Badge -->
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label
+                            Text="Operador en Turno"
+                            FontSize="11"
+                            TextColor="#94A3B8" />
+                        <Label
+                            Text="{Binding OperatorName}"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            TextColor="White"
+                            LineBreakMode="TailTruncation" />
+                    </VerticalStackLayout>
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="#0284C7"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="12,5"
+                        VerticalOptions="Center">
+                        <Label
+                            Text="{Binding OperatorRole}"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="White" />
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Main Content Area -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Offline / Pending Sync Alert (Shown if pending items exist) -->
+                <Border
+                    Stroke="#D97706"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10"
+                    BackgroundColor="#FEF3C7"
+                    Padding="14,10">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding PendingSyncCount}" Value="0">
+                            <Setter Property="IsVisible" Value="False" />
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                        <Label Grid.Column="0" Text="⚠" TextColor="#D97706" FontSize="18" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Sincronización Pendiente" FontAttributes="Bold" FontSize="13" TextColor="#92400E" />
+                            <HorizontalStackLayout Spacing="4">
+                                <Label Text="{Binding PendingSyncCount}" FontSize="12" FontAttributes="Bold" TextColor="#B45309" />
+                                <Label Text="inspecciones locales esperando red" FontSize="12" TextColor="#78350F" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Section Title -->
+                <Label
+                    Text="ACCIONES OPERATIVAS"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    TextColor="#64748B"
+                    CharacterSpacing="1"
+                    Margin="4,4,0,0" />
+
+                <!-- Action Card 1: Escanear Contenedor (Primary Action) -->
+                <Border
+                    Stroke="#0284C7"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#FFFFFF"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border
+                                Grid.Column="0"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#E0F2FE"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
+                                <Label Text="📷" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label
+                                    Text="Escanear Contenedor"
+                                    FontSize="17"
+                                    FontAttributes="Bold"
+                                    TextColor="#0F172A" />
+                                <Label
+                                    Text="Inspección física de unidad y verificación de sellos fiscales"
+                                    FontSize="13"
+                                    TextColor="#64748B" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Button
+                            Text="ESCANEAR AHORA"
+                            Command="{Binding NavigateToScannerCommand}"
+                            HeightRequest="48"
+                            CornerRadius="8"
+                            BackgroundColor="#0284C7"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="14" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Action Card 2: Cola Offline -->
+                <Border
+                    Stroke="#E2E8F0"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#FFFFFF"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border
+                                Grid.Column="0"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#FEF3C7"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
+                                <Label Text="🔄" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label
+                                    Text="Cola Offline"
+                                    FontSize="17"
+                                    FontAttributes="Bold"
+                                    TextColor="#0F172A" />
+                                <Label
+                                    Text="Inspecciones resguardadas localmente en SQLite"
+                                    FontSize="13"
+                                    TextColor="#64748B" />
+                            </VerticalStackLayout>
+                            <Border
+                                Grid.Column="2"
+                                BackgroundColor="#F1F5F9"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="10,4"
+                                VerticalOptions="Center">
+                                <Label
+                                    Text="{Binding PendingSyncCount, StringFormat='{0} pend.'}"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    TextColor="#D97706" />
+                            </Border>
+                        </Grid>
+
+                        <Button
+                            Text="VER COLA DE SINCRONIZACIÓN"
+                            Command="{Binding NavigateToSyncQueueCommand}"
+                            HeightRequest="48"
+                            CornerRadius="8"
+                            BackgroundColor="#1E293B"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="14" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Action Card 3: Embarques -->
+                <Border
+                    Stroke="#E2E8F0"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#FFFFFF"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border
+                                Grid.Column="0"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                BackgroundColor="#F1F5F9"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
+                                <Label Text="📋" FontSize="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label
+                                    Text="Embarques Asignados"
+                                    FontSize="17"
+                                    FontAttributes="Bold"
+                                    TextColor="#0F172A" />
+                                <Label
+                                    Text="Consulta de manifiestos, estados de carga y alertas"
+                                    FontSize="13"
+                                    TextColor="#64748B" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Button
+                            Text="CONSULTAR EMBARQUES"
+                            Command="{Binding NavigateToShipmentsCommand}"
+                            HeightRequest="48"
+                            CornerRadius="8"
+                            BackgroundColor="#1E293B"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="14" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Logout Button -->
+                <Button
+                    Text="CERRAR SESIÓN"
+                    Command="{Binding LogoutCommand}"
+                    HeightRequest="50"
+                    CornerRadius="8"
+                    BackgroundColor="#FEE2E2"
+                    TextColor="#DC2626"
+                    BorderColor="#FCA5A5"
+                    BorderWidth="1"
+                    FontAttributes="Bold"
+                    FontSize="14"
+                    Margin="0,8,0,16" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>
