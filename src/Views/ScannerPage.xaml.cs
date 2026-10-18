@@ -13,45 +13,57 @@ public partial class ScannerPage : ContentPage
         BindingContext = viewModel;
         _viewModel = viewModel;
 
-        BarcodeReaderView.Options ??= new BarcodeReaderOptions
+        if (BarcodeReaderView != null)
         {
-            Formats = BarcodeFormats.All,
-            AutoRotate = true,
-            TryHarder = true
-        };
+            BarcodeReaderView.IsDetecting = false;
+            BarcodeReaderView.Options ??= new BarcodeReaderOptions
+            {
+                Formats = BarcodeFormats.All,
+                AutoRotate = true,
+                TryHarder = true
+            };
+        }
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        _viewModel.ResetScanner();
-
-        var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
-        if (status != PermissionStatus.Granted)
+        try
         {
-            status = await Permissions.RequestAsync<Permissions.Camera>();
-        }
-
-        if (status == PermissionStatus.Granted)
-        {
-            if (BarcodeReaderView != null)
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
             {
-                BarcodeReaderView.IsDetecting = true;
+                status = await Permissions.RequestAsync<Permissions.Camera>();
             }
-            _viewModel.ResetScanner();
+
+            if (status == PermissionStatus.Granted)
+            {
+                _viewModel.ResetScanner();
+                if (BarcodeReaderView != null)
+                {
+                    BarcodeReaderView.IsDetecting = true;
+                }
+            }
+            else
+            {
+                if (BarcodeReaderView != null)
+                {
+                    BarcodeReaderView.IsDetecting = false;
+                }
+                _viewModel.IsScanning = false;
+                _viewModel.ErrorMessage = "Permiso de cámara no concedido. Conceda permiso de Cámara en los ajustes del dispositivo o utilice la Búsqueda Manual.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _viewModel.ErrorMessage = $"Error al inicializar cámara: {ex.Message}";
         }
     }
 
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
         base.OnNavigatedTo(args);
-
-        _viewModel.ResetScanner();
-        if (BarcodeReaderView != null)
-        {
-            BarcodeReaderView.IsDetecting = true;
-        }
     }
 
     protected override void OnDisappearing()

@@ -390,19 +390,14 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
             {
                 try
                 {
-                    while (Shell.Current.Navigation.ModalStack.Count > 0)
+                    if (Shell.Current.Navigation.ModalStack.Count > 0)
                     {
                         await Shell.Current.Navigation.PopModalAsync(false);
-                    }
-
-                    if (Shell.Current.Navigation.NavigationStack.Count > 1)
-                    {
-                        await Shell.Current.Navigation.PopToRootAsync(false);
                     }
                 }
                 catch
                 {
-                    // Fallback to direct navigation if popping fails
+                    // Fallback to direct navigation if modal popping fails
                 }
 
                 await Shell.Current.GoToAsync("//main/dashboard");

@@ -16,12 +16,36 @@ public class GeolocationService : IGeolocationService
     {
         try
         {
-            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5));
-            var location = await _geolocation.GetLocationAsync(request, cancellationToken);
-
-            if (location != null)
+            // 1. Try last known location first (immediate cache lookup, ~5ms)
+            try
             {
-                return $"{location.Latitude.ToString("F4", CultureInfo.InvariantCulture)},{location.Longitude.ToString("F4", CultureInfo.InvariantCulture)}";
+                var lastLocation = await _geolocation.GetLastKnownLocationAsync().ConfigureAwait(false);
+                if (lastLocation != null)
+                {
+                    return $"{lastLocation.Latitude.ToString("F4", CultureInfo.InvariantCulture)},{lastLocation.Longitude.ToString("F4", CultureInfo.InvariantCulture)}";
+                }
+            }
+            catch
+            {
+                // Proceed to fresh location if last known fails
+            }
+
+            // 2. Query fresh location with a strict 2-second timeout to prevent any UI freezing
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(2));
+            var locationTask = _geolocation.GetLocationAsync(request, linkedCts.Token);
+
+            var completedTask = await Task.WhenAny(locationTask, Task.Delay(2000, linkedCts.Token)).ConfigureAwait(false);
+
+            if (completedTask == locationTask)
+            {
+                var location = await locationTask.ConfigureAwait(false);
+                if (location != null)
+                {
+                    return $"{location.Latitude.ToString("F4", CultureInfo.InvariantCulture)},{location.Longitude.ToString("F4", CultureInfo.InvariantCulture)}";
+                }
             }
 
             return null;

@@ -109,6 +109,17 @@ public class ShipmentApiClient : IShipmentApiClient
         var listResponse = await GetShipmentsAsync(page: 1, limit: 5, search: cleanTracking, cancellationToken: cancellationToken);
 
         var items = listResponse?.Data?.Items;
+        if ((items == null || items.Count == 0) && cleanTracking.Contains('/'))
+        {
+            var lastSegment = cleanTracking.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+            if (!string.IsNullOrWhiteSpace(lastSegment) && !string.Equals(lastSegment, cleanTracking, StringComparison.OrdinalIgnoreCase))
+            {
+                listResponse = await GetShipmentsAsync(page: 1, limit: 5, search: lastSegment, cancellationToken: cancellationToken);
+                items = listResponse?.Data?.Items;
+                cleanTracking = lastSegment;
+            }
+        }
+
         if (items == null || items.Count == 0)
         {
             return null;
