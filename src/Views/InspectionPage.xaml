@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             x:Class="CargoPulse.Mobile.Views.InspectionPage"
+             x:DataType="viewModels:InspectionViewModel"
+             BackgroundColor="#F8FAFC"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Top Industrial App Bar -->
+        <Border
+            Grid.Row="0"
+            BackgroundColor="#0F172A"
+            StrokeThickness="0"
+            Padding="16,14">
+            <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                <Button
+                    Grid.Column="0"
+                    Text="←"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="#1E293B"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="8"
+                    Padding="0" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="INSPECCIÓN FÍSICA DE UNIDAD"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    HorizontalTextAlignment="Center"
+                    VerticalOptions="Center"
+                    CharacterSpacing="1" />
+
+                <BoxView
+                    Grid.Column="2"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    Color="Transparent" />
+            </Grid>
+        </Border>
+
+        <!-- Main Scrollable Form -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Error Message Banner -->
+                <Border
+                    IsVisible="{Binding HasErrorMessage}"
+                    Stroke="#DC2626"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="#FEF2F2"
+                    Padding="12">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                        <Label Text="⚠" TextColor="#DC2626" FontSize="18" VerticalOptions="Center" />
+                        <Label
+                            Grid.Column="1"
+                            Text="{Binding ErrorMessage}"
+                            TextColor="#991B1B"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center"
+                            LineBreakMode="WordWrap" />
+                    </Grid>
+                </Border>
+
+                <!-- 1. Unit Overview Card -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="DATOS DEL EMBARQUE" FontSize="11" FontAttributes="Bold" TextColor="#64748B" CharacterSpacing="1" />
+
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="NÚMERO DE GUÍA / TRACKING" FontSize="10" FontAttributes="Bold" TextColor="#64748B" />
+                                <Label
+                                    Text="{Binding TrackingNumber}"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="#0284C7"
+                                    FontFamily="Monospace" />
+                            </VerticalStackLayout>
+
+                            <Border
+                                Grid.Column="1"
+                                BackgroundColor="#0F172A"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="10,4"
+                                VerticalOptions="Center">
+                                <Label Text="EN REVISIÓN" FontSize="11" FontAttributes="Bold" TextColor="#38BDF8" />
+                            </Border>
+                        </Grid>
+
+                        <BoxView Color="#E2E8F0" HeightRequest="1" />
+
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                            <Label Text="🚛" FontSize="16" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="1">
+                                <Label Text="Transportista Asignado" FontSize="10" TextColor="#64748B" />
+                                <Label Text="{Binding CarrierName}" FontSize="13" FontAttributes="Bold" TextColor="#0F172A" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. Seal Verification Section -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="🔒" FontSize="18" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="CONTROL DE SELLO FISCAL" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" CharacterSpacing="0.5" />
+                        </Grid>
+
+                        <!-- Declared Seal -->
+                        <Border
+                            Stroke="#E2E8F0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#F8FAFC"
+                            Padding="12,8">
+                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="Sello Declarado en Manifiesto" FontSize="10" FontAttributes="Bold" TextColor="#64748B" />
+                                    <Label
+                                        Text="{Binding DeclaredSealNumber}"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        TextColor="#0F172A"
+                                        FontFamily="Monospace" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="OFICIAL" FontSize="10" FontAttributes="Bold" TextColor="#0284C7" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Actual Seal Input -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Número de Sello Físico Verificado (*)" FontSize="12" FontAttributes="Bold" TextColor="#0F172A" />
+                            <Border
+                                Stroke="#94A3B8"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="White"
+                                Padding="12,2">
+                                <Entry
+                                    Text="{Binding ActualSealNumber}"
+                                    Placeholder="Ingrese o escanee el número de sello"
+                                    TextColor="#0F172A"
+                                    PlaceholderColor="#94A3B8"
+                                    FontSize="14"
+                                    FontFamily="Monospace" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Seal Mismatch Badge -->
+                        <Border
+                            IsVisible="{Binding SealMismatch}"
+                            Stroke="#DC2626"
+                            StrokeThickness="1.5"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#FEF2F2"
+                            Padding="12">
+                            <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Text="🚨" FontSize="20" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="¡DISCREPANCIA DE SELLO FISCAL!" FontSize="12" FontAttributes="Bold" TextColor="#991B1B" />
+                                    <Label Text="El sello físico verificado difiere del sello declarado oficialmente." FontSize="11" TextColor="#B91C1C" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Seal Intact Switch -->
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Label Text="¿Sello íntegro y sin manipulación?" FontSize="13" FontAttributes="Bold" TextColor="#0F172A" />
+                                <Label Text="Verifique que no existan cortes, deformaciones o soldaduras." FontSize="11" TextColor="#64748B" />
+                            </VerticalStackLayout>
+                            <Switch
+                                Grid.Column="1"
+                                IsToggled="{Binding SealIntact}"
+                                OnColor="#16A34A"
+                                ThumbColor="White"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 3. Container Condition Section -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="📦" FontSize="18" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="ESTADO FÍSICO DEL CONTENEDOR" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" CharacterSpacing="0.5" />
+                        </Grid>
+
+                        <Label Text="Seleccione la condición estructural general:" FontSize="12" TextColor="#64748B" />
+
+                        <!-- Condition Action Buttons -->
+                        <Grid ColumnDefinitions="*, *, *" ColumnSpacing="8">
+                            <!-- Bueno -->
+                            <Button
+                                Grid.Column="0"
+                                Text="✓ BUENO"
+                                Command="{Binding SetConditionCommand}"
+                                CommandParameter="GOOD"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HeightRequest="44">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionGood}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#16A34A" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionGood}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#F1F5F9" />
+                                        <Setter Property="TextColor" Value="#475569" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <!-- Regular -->
+                            <Button
+                                Grid.Column="1"
+                                Text="⚠ REGULAR"
+                                Command="{Binding SetConditionCommand}"
+                                CommandParameter="REGULAR"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HeightRequest="44">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionRegular}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#D97706" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionRegular}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#F1F5F9" />
+                                        <Setter Property="TextColor" Value="#475569" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+
+                            <!-- Dañado -->
+                            <Button
+                                Grid.Column="2"
+                                Text="✕ DAÑADO"
+                                Command="{Binding SetConditionCommand}"
+                                CommandParameter="DAMAGED"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                CornerRadius="8"
+                                HeightRequest="44">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionDamaged}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#DC2626" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding IsConditionDamaged}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#F1F5F9" />
+                                        <Setter Property="TextColor" Value="#475569" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 4. Damage Description Field -->
+                <Border
+                    IsVisible="{Binding DamagesReported}"
+                    Stroke="#F59E0B"
+                    StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="#FFFBEB"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="🚨" FontSize="18" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="DESCRIPCIÓN DE DAÑOS O ANOMALÍAS" FontSize="13" FontAttributes="Bold" TextColor="#B45309" />
+                        </Grid>
+
+                        <Label Text="Detalle la naturaleza de los daños (golpes, fisuras, humedad o precinto violado):" FontSize="11" TextColor="#78350F" />
+
+                        <Border
+                            Stroke="#FCD34D"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="White"
+                            Padding="8,4">
+                            <Editor
+                                Text="{Binding DamagesDescription}"
+                                Placeholder="Especifique detalles técnicos del daño detectado..."
+                                TextColor="#0F172A"
+                                PlaceholderColor="#94A3B8"
+                                HeightRequest="85"
+                                FontSize="13" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 5. Photo Evidence Section -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                            <Label Grid.Column="0" Text="📷" FontSize="18" VerticalOptions="Center" Margin="0,0,8,0" />
+                            <Label Grid.Column="1" Text="EVIDENCIA FOTOGRÁFICA" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" CharacterSpacing="0.5" VerticalOptions="Center" />
+                            <Border
+                                Grid.Column="2"
+                                BackgroundColor="#F1F5F9"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,4"
+                                VerticalOptions="Center">
+                                <Label Text="Máx. 3 fotos" FontSize="10" FontAttributes="Bold" TextColor="#475569" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Take Photo Button -->
+                        <Button
+                            Text="📷 CAPTURAR FOTOGRAFÍA"
+                            Command="{Binding CapturePhotoCommand}"
+                            BackgroundColor="#0284C7"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="13"
+                            CornerRadius="8"
+                            HeightRequest="46" />
+
+                        <!-- Horizontal List of Captured Photos -->
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                            <HorizontalStackLayout
+                                BindableLayout.ItemsSource="{Binding Photos}"
+                                Spacing="12">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid WidthRequest="110" HeightRequest="110">
+                                            <Border
+                                                Stroke="#CBD5E1"
+                                                StrokeThickness="1"
+                                                StrokeShape="RoundRectangle 8"
+                                                Padding="0">
+                                                <Image
+                                                    Source="{Binding .}"
+                                                    Aspect="AspectFill"
+                                                    WidthRequest="110"
+                                                    HeightRequest="110" />
+                                            </Border>
+                                            <Button
+                                                Text="✕"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:InspectionViewModel}}, Path=RemovePhotoCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="#DC2626"
+                                                TextColor="White"
+                                                FontAttributes="Bold"
+                                                FontSize="12"
+                                                WidthRequest="28"
+                                                HeightRequest="28"
+                                                CornerRadius="14"
+                                                Padding="0"
+                                                HorizontalOptions="End"
+                                                VerticalOptions="Start"
+                                                Margin="4" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 6. Digital Signature Section -->
+                <Border
+                    Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="✍" FontSize="18" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="FIRMA DIGITAL DE CONFORMIDAD" FontSize="14" FontAttributes="Bold" TextColor="#0F172A" CharacterSpacing="0.5" />
+                        </Grid>
+
+                        <!-- Signer Name Input -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Nombre del Transportista o Receptor (*)" FontSize="12" FontAttributes="Bold" TextColor="#0F172A" />
+                            <Border
+                                Stroke="#94A3B8"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="White"
+                                Padding="12,2">
+                                <Entry
+                                    Text="{Binding SignerName}"
+                                    Placeholder="Ej. Roberto Morales Sánchez"
+                                    TextColor="#0F172A"
+                                    PlaceholderColor="#94A3B8"
+                                    FontSize="14" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Drawing Pad Instructions & Canvas -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Dibuje su firma en el recuadro táctil:" FontSize="12" TextColor="#64748B" />
+                            <Border
+                                Stroke="#0284C7"
+                                StrokeThickness="1.5"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="White"
+                                HeightRequest="190">
+                                <toolkit:DrawingView
+                                    x:Name="DrawingPad"
+                                    LineColor="#0F172A"
+                                    LineWidth="4"
+                                    IsMultiLineModeEnabled="True"
+                                    ShouldClearOnFinish="False"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Fill" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Signature Actions -->
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                            <Button
+                                Grid.Column="0"
+                                Text="🗑 Borrar Firma"
+                                Clicked="OnClearSignatureClicked"
+                                BackgroundColor="#E2E8F0"
+                                TextColor="#334155"
+                                FontAttributes="Bold"
+                                FontSize="13"
+                                CornerRadius="8"
+                                HeightRequest="44" />
+
+                            <Button
+                                Grid.Column="1"
+                                Text="✓ Confirmar Firma"
+                                Clicked="OnSaveSignatureClicked"
+                                BackgroundColor="#0284C7"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                FontSize="13"
+                                CornerRadius="8"
+                                HeightRequest="44" />
+                        </Grid>
+
+                        <!-- Signature Validation Indicator -->
+                        <Border
+                            StrokeShape="RoundRectangle 6"
+                            Padding="12,8">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSignatureEmpty}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#FEF3C7" />
+                                    <Setter Property="Stroke" Value="#F59E0B" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSignatureEmpty}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="#DCFCE7" />
+                                    <Setter Property="Stroke" Value="#16A34A" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Label FontSize="12" HorizontalOptions="Center" FontAttributes="Bold">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsSignatureEmpty}" Value="True">
+                                        <Setter Property="Text" Value="⚠ Firma táctil requerida antes de guardar" />
+                                        <Setter Property="TextColor" Value="#B45309" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsSignatureEmpty}" Value="False">
+                                        <Setter Property="Text" Value="✓ Firma digital registrada correctamente" />
+                                        <Setter Property="TextColor" Value="#15803D" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 7. Primary Action Button -->
+                <Button
+                    Text="GUARDAR INSPECCIÓN"
+                    Command="{Binding SubmitInspectionCommand}"
+                    BackgroundColor="#0F172A"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    CornerRadius="10"
+                    HeightRequest="54"
+                    CharacterSpacing="1"
+                    Margin="0,8,0,24" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Loading Overlay -->
+        <Grid
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            IsVisible="{Binding IsBusy}"
+            BackgroundColor="#80000000">
+            <Border
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="24"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                MaximumWidthRequest="320">
+                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" Color="#0284C7" WidthRequest="44" HeightRequest="44" />
+                    <Label Text="Procesando inspección..." FontSize="14" FontAttributes="Bold" TextColor="#0F172A" HorizontalOptions="Center" />
+                    <Label Text="Guardando reporte, firmas y coordenadas GPS..." FontSize="12" TextColor="#64748B" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+    </Grid>
+</ContentPage>

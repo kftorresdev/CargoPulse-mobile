@@ -27,6 +27,12 @@
     <Compile Include="..\..\src\Core\Services\AuthService.cs" LinkBase="Core\Services\AuthService.cs" />
     <Compile Include="..\..\src\Core\Services\IHapticService.cs" LinkBase="Core\Services\IHapticService.cs" />
     <Compile Include="..\..\src\Core\Services\HapticService.cs" LinkBase="Core\Services\HapticService.cs" />
+    <Compile Include="..\..\src\Core\Services\IMediaService.cs" LinkBase="Core\Services\IMediaService.cs" />
+    <Compile Include="..\..\src\Core\Services\MediaService.cs" LinkBase="Core\Services\MediaService.cs" />
+    <Compile Include="..\..\src\Core\Services\ISignatureService.cs" LinkBase="Core\Services\ISignatureService.cs" />
+    <Compile Include="..\..\src\Core\Services\SignatureService.cs" LinkBase="Core\Services\SignatureService.cs" />
+    <Compile Include="..\..\src\Core\Services\IGeolocationService.cs" LinkBase="Core\Services\IGeolocationService.cs" />
+    <Compile Include="..\..\src\Core\Services\GeolocationService.cs" LinkBase="Core\Services\GeolocationService.cs" />
     <Compile Include="..\..\src\Core\Handlers\**\*.cs" LinkBase="Core\Handlers" />
     <Compile Include="..\..\src\Data\**\*.cs" LinkBase="Data" />
     <Compile Include="..\..\src\ViewModels\**\*.cs" LinkBase="ViewModels" />
