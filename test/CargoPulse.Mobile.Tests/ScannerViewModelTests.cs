@@ -200,6 +200,26 @@ public class ScannerViewModelTests
     }
 
     [Fact]
+    public void ResetScannerCommand_ResetsAllScanningAndErrorState()
+    {
+        // Arrange
+        _sut.ErrorMessage = "Some error";
+        _sut.DetectedBarcode = "SOME-BARCODE";
+        _sut.IsBusy = true;
+        _sut.IsScanning = false;
+
+        // Act
+        _sut.ResetScannerCommand.Execute(null);
+
+        // Assert
+        _sut.ErrorMessage.Should().BeEmpty();
+        _sut.HasErrorMessage.Should().BeFalse();
+        _sut.DetectedBarcode.Should().BeEmpty();
+        _sut.IsBusy.Should().BeFalse();
+        _sut.IsScanning.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task NavigateToManualEntryCommand_ExecutesWithoutThrowing()
     {
         // Act & Assert

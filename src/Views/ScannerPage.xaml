@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
              xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             xmlns:zxingCore="clr-namespace:ZXing.Net.Maui;assembly=ZXing.Net.MAUI"
              x:Class="CargoPulse.Mobile.Views.ScannerPage"
              x:DataType="viewModels:ScannerViewModel"
              BackgroundColor="#0F172A"
@@ -16,7 +17,14 @@
             IsTorchOn="{Binding IsTorchOn}"
             BarcodesDetected="OnBarcodesDetected"
             HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand" />
+            VerticalOptions="FillAndExpand">
+            <zxing:CameraBarcodeReaderView.Options>
+                <zxingCore:BarcodeReaderOptions
+                    Formats="{x:Static zxingCore:BarcodeFormats.All}"
+                    AutoRotate="True"
+                    TryHarder="True" />
+            </zxing:CameraBarcodeReaderView.Options>
+        </zxing:CameraBarcodeReaderView>
 
         <!-- Tactical Industrial Overlay Layer -->
         <Grid RowDefinitions="Auto, *, Auto">

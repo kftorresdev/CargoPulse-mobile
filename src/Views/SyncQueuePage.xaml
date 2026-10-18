@@ -214,36 +214,69 @@
                                             TextColor="#64748B" />
                                     </VerticalStackLayout>
 
-                                    <!-- Status Pill: PENDING -> Amber, SYNCED -> Green, FAILED -> Red -->
+                                    <!-- Status Pill: PENDING -> Yellow/Amber, SYNCED -> Green, FAILED -> Red -->
                                     <Border
                                         Grid.Column="1"
-                                        StrokeThickness="0"
+                                        StrokeThickness="1"
                                         StrokeShape="RoundRectangle 12"
                                         Padding="10,4"
                                         VerticalOptions="Start"
-                                        BackgroundColor="#FEF3C7">
+                                        BackgroundColor="#FEF3C7"
+                                        Stroke="#FCD34D">
                                         <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="PENDING">
+                                                <Setter Property="BackgroundColor" Value="#FEF3C7" />
+                                                <Setter Property="Stroke" Value="#FCD34D" />
+                                            </DataTrigger>
                                             <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="SYNCED">
                                                 <Setter Property="BackgroundColor" Value="#DCFCE7" />
+                                                <Setter Property="Stroke" Value="#86EFAC" />
                                             </DataTrigger>
                                             <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="FAILED">
                                                 <Setter Property="BackgroundColor" Value="#FEE2E2" />
+                                                <Setter Property="Stroke" Value="#FCA5A5" />
                                             </DataTrigger>
                                         </Border.Triggers>
-                                        <Label
-                                            Text="{Binding SyncStatus}"
-                                            FontSize="10"
-                                            FontAttributes="Bold"
-                                            TextColor="#D97706">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="SYNCED">
-                                                    <Setter Property="TextColor" Value="#16A34A" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
-                                                    <Setter Property="TextColor" Value="#DC2626" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
+                                        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                            <Label
+                                                Text="⏳"
+                                                FontSize="9"
+                                                VerticalOptions="Center"
+                                                TextColor="#B45309">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="PENDING">
+                                                        <Setter Property="Text" Value="⏳" />
+                                                        <Setter Property="TextColor" Value="#B45309" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="SYNCED">
+                                                        <Setter Property="Text" Value="✓" />
+                                                        <Setter Property="TextColor" Value="#15803D" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
+                                                        <Setter Property="Text" Value="✕" />
+                                                        <Setter Property="TextColor" Value="#B91C1C" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label
+                                                Text="{Binding SyncStatus}"
+                                                FontSize="10"
+                                                FontAttributes="Bold"
+                                                TextColor="#B45309"
+                                                VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="PENDING">
+                                                        <Setter Property="TextColor" Value="#B45309" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="SYNCED">
+                                                        <Setter Property="TextColor" Value="#15803D" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
+                                                        <Setter Property="TextColor" Value="#B91C1C" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </HorizontalStackLayout>
                                     </Border>
                                 </Grid>
 
@@ -266,19 +299,81 @@
                                         VerticalOptions="Center" />
                                 </Grid>
 
-                                <!-- Error Message if Failed -->
-                                <Label
-                                    Text="{Binding LastError, StringFormat='⚠ Error: {0}'}"
-                                    FontSize="11"
-                                    TextColor="#DC2626"
-                                    LineBreakMode="TailTruncation"
+                                <!-- Error Message Container if Failed -->
+                                <Border
+                                    BackgroundColor="#FEF2F2"
+                                    Stroke="#FCA5A5"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    Padding="10,8"
                                     IsVisible="False">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding SyncStatus}" Value="FAILED">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding SyncStatus}" Value="FAILED">
                                             <Setter Property="IsVisible" Value="True" />
                                         </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                    </Border.Triggers>
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:SyncQueueViewModel}}, Path=ShowErrorDetailsCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="8" VerticalOptions="Center">
+                                        <!-- Error Warning Icon -->
+                                        <Label
+                                            Grid.Column="0"
+                                            Text="⚠"
+                                            FontSize="14"
+                                            TextColor="#DC2626"
+                                            VerticalOptions="Start"
+                                            Margin="0,1,0,0" />
+
+                                        <!-- Error Label with WordWrap -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                            <Label
+                                                Text="Error de sincronización:"
+                                                FontSize="10"
+                                                FontAttributes="Bold"
+                                                TextColor="#991B1B" />
+                                            <Label
+                                                Text="{Binding LastError}"
+                                                FontSize="11"
+                                                TextColor="#B91C1C"
+                                                LineBreakMode="WordWrap"
+                                                MaxLines="3" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Small Info / Detail Button -->
+                                        <Border
+                                            Grid.Column="2"
+                                            BackgroundColor="#FEE2E2"
+                                            Stroke="#F87171"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="8,5"
+                                            VerticalOptions="Center">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:SyncQueueViewModel}}, Path=ShowErrorDetailsCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                                <Label
+                                                    Text="ℹ"
+                                                    FontSize="11"
+                                                    TextColor="#991B1B"
+                                                    VerticalOptions="Center" />
+                                                <Label
+                                                    Text="Detalle"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#991B1B"
+                                                    VerticalOptions="Center" />
+                                            </HorizontalStackLayout>
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>

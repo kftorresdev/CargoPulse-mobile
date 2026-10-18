@@ -89,11 +89,18 @@ public partial class ScannerViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private void ResumeScanning()
+    public void ResetScanner()
     {
         ErrorMessage = string.Empty;
         DetectedBarcode = string.Empty;
+        IsBusy = false;
         IsScanning = true;
+    }
+
+    [RelayCommand]
+    private void ResumeScanning()
+    {
+        ResetScanner();
     }
 
     [RelayCommand]

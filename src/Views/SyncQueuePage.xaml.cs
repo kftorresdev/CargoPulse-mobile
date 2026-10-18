@@ -11,6 +11,7 @@ public partial class SyncQueuePage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
         _viewModel = viewModel;
+        _viewModel.DisplayAlertFunc = (title, message, cancel) => DisplayAlert(title, message, cancel);
     }
 
     protected override void OnAppearing()

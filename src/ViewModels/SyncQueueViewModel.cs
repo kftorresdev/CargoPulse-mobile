@@ -82,6 +82,8 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
         IsOnline = isConnected;
     }
 
+    public Func<string, string, string, Task>? DisplayAlertFunc { get; set; }
+
     [RelayCommand]
     public async Task RefreshAsync()
     {
@@ -106,6 +108,11 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
 
             PendingCount = await _localInspectionRepository.GetPendingCountAsync();
             IsEmpty = Inspections.Count == 0;
+
+            if (SyncMessage.StartsWith("Error al cargar inspecciones:"))
+            {
+                SyncMessage = string.Empty;
+            }
         }
         catch (Exception ex)
         {
@@ -130,14 +137,36 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
             IsBusy = true;
             IsSyncing = true;
             ProgressPercent = 0.0;
-            SyncMessage = "Iniciando sincronización...";
+            SyncMessage = string.Empty;
 
             if (!_connectivityService.IsConnected)
             {
                 SyncMessage = "Modo offline: sin conexión para sincronizar.";
+                return;
             }
 
-            await _syncEngine.SyncPendingInspectionsAsync();
+            // Clear previous transient errors on failed records so they can be retried
+            var allRecords = await _localInspectionRepository.GetAllInspectionsAsync();
+            if (allRecords != null)
+            {
+                foreach (var record in allRecords)
+                {
+                    if (record.SyncStatus == "FAILED")
+                    {
+                        record.SyncStatus = "PENDING";
+                        record.LastError = null;
+                        await _localInspectionRepository.SaveInspectionAsync(record);
+                    }
+                }
+            }
+
+            SyncMessage = "Iniciando sincronización...";
+            var syncedCount = await _syncEngine.SyncPendingInspectionsAsync();
+
+            if (syncedCount == 0 && (string.IsNullOrWhiteSpace(SyncMessage) || SyncMessage == "Iniciando sincronización..."))
+            {
+                SyncMessage = "No hay elementos pendientes para sincronizar.";
+            }
         }
         catch (Exception ex)
         {
@@ -146,8 +175,44 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
         finally
         {
             IsSyncing = false;
-            IsBusy = false;
             await RefreshAsync();
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task ShowErrorDetailsAsync(LocalInspectionRecord? record)
+    {
+        if (record == null)
+        {
+            return;
+        }
+
+        var details = string.IsNullOrWhiteSpace(record.LastError)
+            ? "No se registró detalle del error."
+            : record.LastError;
+
+        var fullMessage = record.RetryCount > 0
+            ? $"{details}\n\nReintentos realizados: {record.RetryCount}"
+            : details;
+
+        var identifier = !string.IsNullOrWhiteSpace(record.TrackingNumber)
+            ? record.TrackingNumber
+            : record.Id;
+
+        var title = $"Error de Sincronización ({identifier})";
+
+        if (DisplayAlertFunc != null)
+        {
+            await DisplayAlertFunc(title, fullMessage, "Cerrar");
+        }
+        else if (Shell.Current != null)
+        {
+            await Shell.Current.DisplayAlert(title, fullMessage, "Cerrar");
+        }
+        else if (Application.Current?.Windows.Count > 0 && Application.Current.Windows[0].Page != null)
+        {
+            await Application.Current.Windows[0].Page!.DisplayAlert(title, fullMessage, "Cerrar");
         }
     }
 
@@ -168,6 +233,7 @@ public partial class SyncQueueViewModel : BaseViewModel, IDisposable
         {
             _syncEngine.SyncProgressChanged -= OnSyncProgressChanged;
             _connectivityService.ConnectivityChanged -= OnConnectivityChanged;
+            DisplayAlertFunc = null;
         }
 
         _disposed = true;

@@ -187,5 +187,92 @@ public class SyncQueueViewModelTests
         await _sut.ForceSyncCommand.ExecuteAsync(null);
         _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task ForceSyncCommand_WhenFailedInspectionsExist_ResetsThemToPendingAndClearsLastError()
+    {
+        var failedRecord = new LocalInspectionRecord
+        {
+            Id = "rec-failed-1",
+            TrackingNumber = "TRK-ERR-001",
+            SyncStatus = "FAILED",
+            LastError = "uploading inspection failed with HTTP 500 success...",
+            RetryCount = 1
+        };
+
+        var allRecords = new List<LocalInspectionRecord> { failedRecord };
+        _mockRepo.Setup(r => r.GetAllInspectionsAsync()).ReturnsAsync(allRecords);
+        _mockRepo.Setup(r => r.GetPendingCountAsync()).ReturnsAsync(1);
+        _mockSyncEngine
+            .Setup(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        LocalInspectionRecord? savedRecord = null;
+        _mockRepo.Setup(r => r.SaveInspectionAsync(It.IsAny<LocalInspectionRecord>()))
+            .Callback<LocalInspectionRecord>(rec => savedRecord = rec)
+            .Returns(Task.CompletedTask);
+
+        await _sut.ForceSyncCommand.ExecuteAsync(null);
+
+        _mockRepo.Verify(r => r.SaveInspectionAsync(It.IsAny<LocalInspectionRecord>()), Times.Once);
+        savedRecord.Should().NotBeNull();
+        savedRecord!.SyncStatus.Should().Be("PENDING");
+        savedRecord.LastError.Should().BeNull();
+        _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ForceSyncCommand_ClearsPreviousSyncMessageError()
+    {
+        _sut.SyncMessage = "Error durante la sincronización: Transient failure";
+        _mockRepo.Setup(r => r.GetAllInspectionsAsync()).ReturnsAsync(new List<LocalInspectionRecord>());
+        _mockRepo.Setup(r => r.GetPendingCountAsync()).ReturnsAsync(0);
+        _mockSyncEngine
+            .Setup(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        await _sut.ForceSyncCommand.ExecuteAsync(null);
+
+        _sut.SyncMessage.Should().NotContain("Transient failure");
+    }
+
+    [Fact]
+    public async Task ShowErrorDetailsCommand_InvokesDisplayAlertFuncWithFullErrorTextAndRetryCount()
+    {
+        string? capturedTitle = null;
+        string? capturedMessage = null;
+        string? capturedCancel = null;
+
+        _sut.DisplayAlertFunc = (title, message, cancel) =>
+        {
+            capturedTitle = title;
+            capturedMessage = message;
+            capturedCancel = cancel;
+            return Task.CompletedTask;
+        };
+
+        var record = new LocalInspectionRecord
+        {
+            Id = "rec-fail-details",
+            TrackingNumber = "TRK-LONG-ERROR",
+            SyncStatus = "FAILED",
+            LastError = "uploading inspection failed with HTTP 500 success false: Server database timeout occurred during processing.",
+            RetryCount = 3
+        };
+
+        await _sut.ShowErrorDetailsCommand.ExecuteAsync(record);
+
+        capturedTitle.Should().Contain("TRK-LONG-ERROR");
+        capturedMessage.Should().Contain("Server database timeout occurred during processing");
+        capturedMessage.Should().Contain("Reintentos realizados: 3");
+        capturedCancel.Should().Be("Cerrar");
+    }
+
+    [Fact]
+    public async Task ShowErrorDetailsCommand_WhenRecordIsNull_DoesNotThrow()
+    {
+        var act = async () => await _sut.ShowErrorDetailsCommand.ExecuteAsync(null);
+        await act.Should().NotThrowAsync();
+    }
 }
 

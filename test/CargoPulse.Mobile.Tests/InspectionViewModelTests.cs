@@ -373,4 +373,12 @@ public class InspectionViewModelTests
         _mockSyncEngine.Verify(s => s.SyncPendingInspectionsAsync(It.IsAny<CancellationToken>()), Times.Never);
         _sut.SuccessFeedbackMessage.Should().NotBeNullOrWhiteSpace();
     }
+
+    [Fact]
+    public async Task GoBackAsync_ExecutesGracefullyWithoutThrowing()
+    {
+        // Act & Assert
+        await _sut.GoBackCommand.ExecuteAsync(null);
+        _sut.IsBusy.Should().BeFalse();
+    }
 }

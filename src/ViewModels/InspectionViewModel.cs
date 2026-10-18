@@ -388,6 +388,23 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
 
             if (Shell.Current != null)
             {
+                try
+                {
+                    while (Shell.Current.Navigation.ModalStack.Count > 0)
+                    {
+                        await Shell.Current.Navigation.PopModalAsync(false);
+                    }
+
+                    if (Shell.Current.Navigation.NavigationStack.Count > 1)
+                    {
+                        await Shell.Current.Navigation.PopToRootAsync(false);
+                    }
+                }
+                catch
+                {
+                    // Fallback to direct navigation if popping fails
+                }
+
                 await Shell.Current.GoToAsync("//main/dashboard");
             }
         }
@@ -402,11 +419,47 @@ public partial class InspectionViewModel : BaseViewModel, IQueryAttributable
     }
 
     [RelayCommand]
-    private async Task GoBackAsync()
+    public async Task GoBackAsync()
     {
-        if (Shell.Current != null)
+        if (Shell.Current == null)
         {
-            await Shell.Current.GoToAsync("..");
+            return;
+        }
+
+        try
+        {
+            if (Shell.Current.Navigation.ModalStack.Count > 0)
+            {
+                await Shell.Current.Navigation.PopModalAsync();
+                return;
+            }
+
+            if (Shell.Current.Navigation.NavigationStack.Count > 1)
+            {
+                await Shell.Current.GoToAsync("..");
+            }
+            else
+            {
+                await Shell.Current.GoToAsync("//main/dashboard");
+            }
+        }
+        catch (Exception)
+        {
+            try
+            {
+                if (Shell.Current.Navigation.NavigationStack.Count > 1)
+                {
+                    await Shell.Current.Navigation.PopAsync();
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync("//main/dashboard");
+                }
+            }
+            catch
+            {
+                await Shell.Current.GoToAsync("//main/dashboard");
+            }
         }
     }
 }
