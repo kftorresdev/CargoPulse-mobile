@@ -27,6 +27,9 @@ public static class MauiProgram
         // Core & Data Services
         builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
         builder.Services.AddSingleton<IHapticService, HapticService>();
+        builder.Services.AddSingleton<IMediaService, MediaService>();
+        builder.Services.AddSingleton<ISignatureService, SignatureService>();
+        builder.Services.AddSingleton<IGeolocationService, GeolocationService>();
         builder.Services.AddSingleton(sp => new HttpClient
         {
             BaseAddress = new Uri(ApiConstants.DefaultBaseUrl),
@@ -43,6 +46,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ManualEntryViewModel>();
         builder.Services.AddTransient<ShipmentDetailViewModel>();
         builder.Services.AddTransient<ShipmentsListViewModel>();
+        builder.Services.AddTransient<InspectionViewModel>();
 
         // Views
         builder.Services.AddTransient<LoginPage>();
@@ -51,6 +55,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ManualEntryPage>();
         builder.Services.AddTransient<ShipmentDetailPage>();
         builder.Services.AddTransient<ShipmentsListPage>();
+        builder.Services.AddTransient<InspectionPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
