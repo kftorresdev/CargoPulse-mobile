@@ -3,10 +3,11 @@
 > **Field Operations Companion** — Aplicación móvil de campo para inspectores de patio, choferes y agentes aduanales en terminales logísticas transfronterizas (México – EE. UU.).
 
 [![CI/CD Pipeline](https://github.com/cargopulse/cargopulse-mobile/actions/workflows/mobile-ci.yml/badge.svg)](.github/workflows/mobile-ci.yml)
+![Release](https://img.shields.io/badge/Release-v1.0.0-blue?logo=github)
 ![.NET MAUI](https://img.shields.io/badge/.NET%20MAUI-9.0.0-512BD4?logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-13.0-239120?logo=csharp&logoColor=white)
-![Tests](https://img.shields.io/badge/Unit%20Tests-245%20passed-brightgreen?logo=xunit)
-![Test Duration](https://img.shields.io/badge/Test%20Execution-~450ms-blue)
+![Tests](https://img.shields.io/badge/Unit%20Tests-251%20passed-brightgreen?logo=xunit)
+![Test Duration](https://img.shields.io/badge/Test%20Execution-~410ms-blue)
 ![Platform](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Windows-lightgrey)
 ![Offline First](https://img.shields.io/badge/Storage-SQLite%20Offline--First-orange?logo=sqlite)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
@@ -147,7 +148,7 @@ dotnet format --verify-no-changes --verbosity normal
 ```powershell
 dotnet test test/CargoPulse.Mobile.Tests/CargoPulse.Mobile.Tests.csproj
 ```
-*Resultado esperado: **245 pruebas exitosas** en ~450 ms.*
+*Resultado esperado: **251 pruebas exitosas** en ~410 ms.*
 
 ### 4. Compilar y Desplegar en Emulador o Dispositivo
 ```powershell
@@ -231,9 +232,11 @@ CargoPulse-mobile/
 │   ├── AppShell.xaml                     # Navegación basada en Shell y rutas dinámicas
 │   └── MauiProgram.cs                    # Contenedor de Inyección de Dependencias
 ├── test/
-│   └── CargoPulse.Mobile.Tests/          # 245 Pruebas unitarias headless en xUnit
+│   └── CargoPulse.Mobile.Tests/          # 251 Pruebas unitarias headless en xUnit (~410 ms)
 ├── CargoPulse.Mobile.sln                 # Solución principal de .NET
-├── MASTER_ENGINEERING_CONSTITUTION.md    # Constitución de Ingeniería v2.2
+├── MASTER_ENGINEERING_CONSTITUTION.md    # Constitución de Ingeniería v2.3
+├── docs/
+│   └── RELEASE_NOTES_v1.0.0.md           # Acta de Entrega y Notas de Versión v1.0.0
 └── README.md                             # Documentación de entrada y manual técnico
 ```
 
