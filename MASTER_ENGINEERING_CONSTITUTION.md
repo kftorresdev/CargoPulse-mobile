@@ -517,3 +517,45 @@ Los servidores HTTP modernos (Express, NestJS, Fastify, ASP.NET Core) configuran
 1. **Visibilidad Completa de Errores de Sincronización:** En pantallas de colas offline o historial de sincronización, los mensajes de error retornados por la red o el servidor NUNCA deben truncarse sin opción de lectura. Deben contar con ajuste de línea (`LineBreakMode="WordWrap"`), scroll vertical o un diálogo modal táctil que permita al operador o tester inspeccionar la causa exacta del rechazo.
 2. **Transparencia en Sensores Ópticos (Escáner de Códigos):** Si el sensor de cámara detecta un código que no coincide con ningún registro en la base de datos, la interfaz debe mostrar expresamente: `Código escaneado: '[VALOR_DETECTADO]'. No coincide con ningún registro.`, permitiendo confirmar que el sensor óptico funcionó correctamente y descartando falsos reportes de fallas de cámara.
 
+---
+
+## 🛡️ 18. Estándar Anti-Congelamiento de Interfaz (Zero-ANR Architecture & The Anti-Freeze Triad)
+
+**Axioma Fundamental de Ingeniería:**  
+*Un bloque `try-catch` por sí solo NO evita que una aplicación se congele.*  
+El bloque `catch` únicamente se activa cuando una operación **termina y arroja un error (`throw`)**. Si una llamada asíncrona a un sensor de hardware (GPS, Bluetooth), una petición HTTP de red, o una lectura de disco queda en espera indefinida (deadlock o socket colgado), la ejecución permanece atrapada **dentro del bloque `try`**, el hilo principal de la interfaz queda secuestrado y el sistema operativo (Android/iOS) destruye la aplicación mediante un **ANR ("Application Not Responding")**.
+
+### 18.1 La Tríada Mandatoria Anti-Congelamiento (The Anti-Freeze Triad)
+Toda interacción con el exterior (Red HTTP, Sensores de Hardware, Periféricos, Base de Datos SQLite o Sistema de Archivos) debe implementar obligatoriamente los 3 escudos defensivos en conjunto:
+
+```mermaid
+flowchart LR
+    A["Llamada a Recurso Externo<br>(GPS / HTTP / I/O)"] --> B["Escudo 1: Fusible Temporal<br>(CancellationTokenSource)"]
+    B --> C["Escudo 2: Guardián de Carrera<br>(Task.WhenAny + Task.Delay)"]
+    C --> D["Escudo 3: try-catch con Fallback<br>(Retorno seguro / Modo Offline)"]
+    D --> E["UI Fluida y Libre de ANR<br>(Tiempo de respuesta < 2s garantizado)"]
+```
+
+1. **Escudo 1: El Fusible Temporal (`CancellationTokenSource` con límite de tiempo):**
+   - Ninguna operación externa puede invocarse con `CancellationToken.None` o sin temporizador.
+   - Debe asignarse un tiempo de vida máximo (ej. 2s para GPS, 15s para HTTP). Si expira, el token se cancela forzosamente.
+2. **Escudo 2: El Guardián de Carrera (`Task.WhenAny` con `Task.Delay`):**
+   - En sistemas móviles, ciertos drivers nativos en C/C++ o servicios del sistema operativo ignoran los tokens de cancelación cuando se bloquean internamente en el Binder IPC de Android.
+   - Se debe poner a competir la tarea de hardware contra un retraso temporal seguro:
+     ```csharp
+     var completedTask = await Task.WhenAny(operationTask, Task.Delay(timeoutMs, cts.Token)).ConfigureAwait(false);
+     ```
+   - Si el retraso concluye antes que la operación, el flujo de ejecución **continúa de inmediato**, abandonando la tarea colgada sin esperar la respuesta del sistema operativo.
+3. **Escudo 3: El Bloque `try-catch` con Plan de Contingencia (Fallback Plan):**
+   - Atrapa cualquier `OperationCanceledException`, `TimeoutException` o error de plataforma provocado por los escudos 1 y 2.
+   - En lugar de detener la aplicación o mostrar diálogos bloqueantes, ejecuta la contingencia:
+     - *En GPS:* Retorna `null` y continúa el guardado de la inspección sin coordenadas satelitales.
+     - *En HTTP:* Guarda los datos en SQLite local con estado `PENDING` y activa el modo offline.
+     - *En Cámara:* Muestra la alternativa de búsqueda manual.
+
+### 18.2 Regla de SLA del Hilo de UI (Main Thread SLA - 5000ms Hard Ceiling)
+El kernel de Android monitoriza el bucle de mensajes del hilo principal (`MainLooper`). Si un evento de toque, renderizado de pantalla o ciclo de vida tarda **más de 5 segundos** en completarse, el sistema clasifica la app como zombi y despliega el diálogo emergente del sistema para cerrarla.
+- **Regla Estricta:** El tiempo máximo permitido para que cualquier comando de UI (`[RelayCommand]`) complete su trabajo síncrono antes de ceder el control al despachador es de **16 milisegundos** (para mantener 60 fps).
+- **Operaciones Pesadas Fuera de UI:** Todo procesamiento de streams de imágenes, cálculo criptográfico de hashes o serialización de payloads grandes debe ejecutarse fuera del hilo de la interfaz utilizando `Task.Run(...)` o `ConfigureAwait(false)`.
+
+
