@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:CargoPulse.Mobile.ViewModels"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             x:Class="CargoPulse.Mobile.Views.ScannerPage"
+             x:DataType="viewModels:ScannerViewModel"
+             BackgroundColor="#0F172A"
+             Shell.NavBarIsVisible="False">
+
+    <Grid>
+        <!-- Camera Viewfinder Background -->
+        <zxing:CameraBarcodeReaderView
+            x:Name="BarcodeReaderView"
+            IsDetecting="{Binding IsScanning}"
+            IsTorchOn="{Binding IsTorchOn}"
+            BarcodesDetected="OnBarcodesDetected"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand" />
+
+        <!-- Tactical Industrial Overlay Layer -->
+        <Grid RowDefinitions="Auto, *, Auto">
+
+            <!-- Top Header & Manual Entry Bar -->
+            <Border
+                Grid.Row="0"
+                BackgroundColor="#D90F172A"
+                StrokeThickness="0"
+                Padding="16,14">
+                <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label
+                            Text="CARGOPULSE OPTICAL"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="#38BDF8"
+                            CharacterSpacing="1" />
+                        <Label
+                            Text="Escáner de Campo"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="White" />
+                    </VerticalStackLayout>
+
+                    <!-- Manual Entry Button -->
+                    <Button
+                        Grid.Column="1"
+                        Text="⌨ Búsqueda Manual"
+                        Command="{Binding NavigateToManualEntryCommand}"
+                        BackgroundColor="#1E293B"
+                        TextColor="#38BDF8"
+                        BorderColor="#0284C7"
+                        BorderWidth="1"
+                        CornerRadius="8"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        Padding="12,6"
+                        HeightRequest="42" />
+                </Grid>
+            </Border>
+
+            <!-- Center Scanning Reticle & Tactical Guide -->
+            <Grid Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="280" HeightRequest="280">
+
+                <!-- Dark Semi-Transparent Frame Background -->
+                <Border
+                    Stroke="#0284C7"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="#200F172A"
+                    HorizontalOptions="Fill"
+                    VerticalOptions="Fill">
+
+                    <Grid>
+                        <!-- Center Scan Guide Line -->
+                        <BoxView
+                            Color="#0284C7"
+                            HeightRequest="2"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center"
+                            Opacity="0.8" />
+
+                        <!-- Instructional Label -->
+                        <Label
+                            Text="Alinee el código de barras o QR"
+                            TextColor="#94A3B8"
+                            FontSize="12"
+                            HorizontalOptions="Center"
+                            VerticalOptions="End"
+                            Margin="0,0,0,16" />
+                    </Grid>
+                </Border>
+
+                <!-- Corner 1: Top-Left -->
+                <BoxView Color="#38BDF8" WidthRequest="24" HeightRequest="4" HorizontalOptions="Start" VerticalOptions="Start" Margin="4,4,0,0" />
+                <BoxView Color="#38BDF8" WidthRequest="4" HeightRequest="24" HorizontalOptions="Start" VerticalOptions="Start" Margin="4,4,0,0" />
+
+                <!-- Corner 2: Top-Right -->
+                <BoxView Color="#38BDF8" WidthRequest="24" HeightRequest="4" HorizontalOptions="End" VerticalOptions="Start" Margin="0,4,4,0" />
+                <BoxView Color="#38BDF8" WidthRequest="4" HeightRequest="24" HorizontalOptions="End" VerticalOptions="Start" Margin="0,4,4,0" />
+
+                <!-- Corner 3: Bottom-Left -->
+                <BoxView Color="#38BDF8" WidthRequest="24" HeightRequest="4" HorizontalOptions="Start" VerticalOptions="End" Margin="4,0,0,4" />
+                <BoxView Color="#38BDF8" WidthRequest="4" HeightRequest="24" HorizontalOptions="Start" VerticalOptions="End" Margin="4,0,0,4" />
+
+                <!-- Corner 4: Bottom-Right -->
+                <BoxView Color="#38BDF8" WidthRequest="24" HeightRequest="4" HorizontalOptions="End" VerticalOptions="End" Margin="0,0,4,4" />
+                <BoxView Color="#38BDF8" WidthRequest="4" HeightRequest="24" HorizontalOptions="End" VerticalOptions="End" Margin="0,0,4,4" />
+            </Grid>
+
+            <!-- Bottom Action Controls: Torch Toggle & State -->
+            <Border
+                Grid.Row="2"
+                BackgroundColor="#D90F172A"
+                StrokeThickness="0"
+                Padding="20,16">
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+
+                    <!-- Torch (Flashlight) Button -->
+                    <Button
+                        Text="{Binding IsTorchOn, Converter={x:Null}, StringFormat='🔦 Linterna'}"
+                        Command="{Binding ToggleTorchCommand}"
+                        BackgroundColor="{Binding IsTorchOn, Converter={x:Null}}"
+                        TextColor="White"
+                        BorderColor="#334155"
+                        BorderWidth="1"
+                        CornerRadius="24"
+                        HeightRequest="48"
+                        WidthRequest="160"
+                        FontSize="14"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="Active la linterna en áreas de poca iluminación"
+                        TextColor="#64748B"
+                        FontSize="11"
+                        HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Loading Overlay (When looking up barcode) -->
+        <Grid
+            BackgroundColor="#CC0F172A"
+            IsVisible="{Binding IsBusy}">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator
+                    IsRunning="{Binding IsBusy}"
+                    Color="#38BDF8"
+                    WidthRequest="48"
+                    HeightRequest="48" />
+                <Label
+                    Text="Buscando embarque en el sistema..."
+                    TextColor="White"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Error Card Overlay (When code not found) -->
+        <Grid
+            BackgroundColor="#E60F172A"
+            Padding="24"
+            IsVisible="{Binding HasErrorMessage}">
+            <Border
+                Stroke="#DC2626"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 16"
+                BackgroundColor="#1E293B"
+                Padding="20"
+                VerticalOptions="Center"
+                MaximumWidthRequest="400">
+                <VerticalStackLayout Spacing="16">
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="⚠" TextColor="#EF4444" FontSize="24" VerticalOptions="Center" />
+                        <Label Text="Embarque No Encontrado" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label
+                        Text="{Binding ErrorMessage}"
+                        TextColor="#FECACA"
+                        FontSize="13"
+                        HorizontalTextAlignment="Center"
+                        LineBreakMode="WordWrap" />
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                        <Button
+                            Grid.Column="0"
+                            Text="Reanudar"
+                            Command="{Binding ResumeScanningCommand}"
+                            BackgroundColor="#0284C7"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="46"
+                            FontAttributes="Bold" />
+                        <Button
+                            Grid.Column="1"
+                            Text="Manual"
+                            Command="{Binding NavigateToManualEntryCommand}"
+                            BackgroundColor="#334155"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="46"
+                            FontAttributes="Bold" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+    </Grid>
+</ContentPage>

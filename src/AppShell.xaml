@@ -22,6 +22,20 @@
                 Shell.NavBarIsVisible="False"
                 ContentTemplate="{DataTemplate views:DashboardPage}" />
         </Tab>
+
+        <Tab Title="Escáner" Route="scanner">
+            <ShellContent
+                Title="Escáner"
+                Shell.NavBarIsVisible="False"
+                ContentTemplate="{DataTemplate views:ScannerPage}" />
+        </Tab>
+
+        <Tab Title="Embarques" Route="shipments">
+            <ShellContent
+                Title="Embarques"
+                Shell.NavBarIsVisible="False"
+                ContentTemplate="{DataTemplate views:ShipmentsListPage}" />
+        </Tab>
     </TabBar>
 
 </Shell>
